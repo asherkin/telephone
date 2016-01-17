@@ -44,7 +44,15 @@ int main(int argc, char *argv[]) {
   int packet = 0;
   char filename[64];
 
-  FILE *outputFile = fopen("voice.dat", "wb");
+  FILE *outputFile = fopen("voice.wav", "wb");
+
+  unsigned char wavHeader[] = {
+    0x52, 0x49, 0x46, 0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
+    0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x80, 0x3E, 0x00, 0x00, 0x00, 0x7D, 0x00, 0x00,
+    0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0xFF, 0xFF, 0xFF, 0xFF,
+  };
+
+  fwrite(wavHeader, 1, sizeof(wavHeader), outputFile);
 
   while (true) {
   	sprintf(filename, "voice_%02d.dat", packet++);
@@ -213,7 +221,16 @@ int main(int argc, char *argv[]) {
 
   printf("%d total packets.\n", packet - 1);
 
+  size_t outputSize = ftell(outputFile);
+  fseek(outputFile, sizeof(uint32_t), SEEK_SET);
+  uint32_t outputFileSizeMinusRIFFHeader = outputSize - (sizeof(uint32_t) * 2);
+  fwrite(&outputFileSizeMinusRIFFHeader, sizeof(uint32_t), 1, outputFile);
+  fseek(outputFile, sizeof(wavHeader) - sizeof(uint32_t), SEEK_SET);
+  uint32_t outputFileSizeMinusHeader = outputSize - sizeof(wavHeader);
+  fwrite(&outputFileSizeMinusHeader, sizeof(uint32_t), 1, outputFile);
+
   fclose(outputFile);
+
   free(decoderState);
 
   while (SDL_GetQueuedAudioSize(audioDevice) > 0) {
