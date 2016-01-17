@@ -1,14 +1,14 @@
 # vim: set sts=2 ts=8 sw=2 tw=99 et ft=python:
 import os
 
-binary = builder.compiler.Library('telephone.ext')
+binary = Telephone.Library(builder, 'telephone.ext')
 Telephone.ConfigureForExtension(builder, binary.compiler)
 
 binary.compiler.defines += ['SOURCEMOD_BUILD']
 
-binary.compiler.includes += [
-  os.path.join(builder.sourcePath, 'silk', 'include'),
-]
+#binary.compiler.includes += [
+#  os.path.join(builder.sourcePath, 'silk', 'include'),
+#]
 
 binary.sources += [
   'extension.cpp',
@@ -17,6 +17,6 @@ binary.sources += [
   os.path.join(Telephone.sm_root, 'public', 'asm', 'asm.c'),
 ]
 
-binary.compiler.postlink += [Telephone.silk_sdk.binary]
+#binary.compiler.postlink += [Telephone.silk_sdk.binary]
 
 Telephone.extensions += [builder.Add(binary)]

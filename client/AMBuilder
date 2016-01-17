@@ -1,0 +1,17 @@
+# vim: set sts=2 ts=8 sw=2 tw=99 et ft=python:
+import os
+
+binary = Telephone.Program(builder, 'telephone')
+
+binary.compiler.includes += [
+  os.path.join(builder.sourcePath, 'silk', 'include'),
+]
+
+binary.sources += [
+  'main.cpp',
+  'crc32.cpp'
+]
+
+binary.compiler.postlink += [Telephone.silk_sdk.binary]
+
+builder.Add(binary)

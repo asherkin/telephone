@@ -129,7 +129,6 @@ class TelephoneConfig(object):
       ]
       cxx.linkflags += [
         '/MACHINE:X86',
-        '/SUBSYSTEM:WINDOWS',
         'kernel32.lib',
         'user32.lib',
         'gdi32.lib',
@@ -186,6 +185,18 @@ class TelephoneConfig(object):
     elif builder.target_platform == 'windows':
       cxx.defines += ['WIN32', '_WINDOWS']
 
+  def Program(self, context, name):
+    binary = context.compiler.Program(name)
+    if binary.compiler.like('msvc'):
+      binary.compiler.linkflags.append('/SUBSYSTEM:CONSOLE')
+    return binary
+
+  def Library(self, context, name):
+    binary = context.compiler.Library(name)
+    if binary.compiler.like('msvc'):
+      binary.compiler.linkflags.append('/SUBSYSTEM:WINDOWS')
+    return binary
+
   def ConfigureForExtension(self, context, compiler):
     compiler.cxxincludes += [
       os.path.join(context.currentSourcePath),
@@ -200,5 +211,5 @@ Telephone = TelephoneConfig()
 Telephone.detectSDKs()
 Telephone.configure()
 
-builder.RunBuildScripts(['silk/AMBuilder', 'extension/AMBuilder'], { 'Telephone': Telephone })
+builder.RunBuildScripts(['silk/AMBuilder', 'extension/AMBuilder', 'client/AMBuilder'], { 'Telephone': Telephone })
 builder.RunScript('PackageScript', { 'Telephone': Telephone })

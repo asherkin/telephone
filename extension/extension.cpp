@@ -21,6 +21,13 @@ DETOUR_DECL_MEMBER4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 {
 	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
 
+	static int packet = 0;
+	char filename[64];
+	sprintf(filename, "voice_%02d.dat", packet++);
+	FILE *file = fopen(filename, "wb");
+	fwrite(data, bytes, 1, file);
+	fclose(file);
+
 	DETOUR_MEMBER_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
 }
 

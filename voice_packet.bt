@@ -1,0 +1,68 @@
+//--------------------------------------
+//--- 010 Editor v6.0.3 Binary Template
+//
+// File:
+// Author:
+// Revision:
+// Purpose:
+//--------------------------------------
+
+// CClientAudio::DecompressVoice
+local int64 crcLength = FileSize() - sizeof(uint32);
+
+uint64 steamId;
+
+FSeek(crcLength);
+uint32 crc;
+
+local int64 crc_calc = Checksum(CHECKSUM_CRC32, 0, crcLength);
+if (crc != crc_calc) {
+    Warning("CRC mismatch!");
+    return;
+}
+
+// CVoiceDecoder::ProcessVoicePayload
+FSeek(sizeof(uint64));
+
+while (FTell() < crcLength) {
+    char payloadType;
+
+    switch (payloadType) {
+    default:
+        Warning("Unhandled payload!");
+        return;
+    case 11: // Sample Rate
+        short sampleRate;
+        break;
+    case 10: // Unknown / Unused
+        char unk1;
+        char unk2;
+        break;
+    case 1: // Unknown Codec???
+    case 2: // Speex Data (Unsupported)
+    case 3: // Uncompressed Data
+    case 4: // SILK Data
+        short dataLength;
+        char data[dataLength];
+        break;
+    case 0: // Silence
+        short numSamples;
+        break;
+    }
+}
+
+// CVoiceDecoder::AddIncomingData
+FSeek(startof(data));
+
+// VoiceEncoder_SILK::Decompress
+
+// chunkLength == -1 means ResetState
+    
+while ((FTell() - startof(data)) < dataLength) {
+    struct Chunk {
+        short chunkLength;
+        if (chunkLength != -1) {
+            char chunk[chunkLength];
+        }
+    } chunk;
+}
