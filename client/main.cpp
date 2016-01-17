@@ -1,5 +1,8 @@
 #include <SKP_Silk_SDK_API.h>
 
+#include <SDL.h>
+#include <SDL_audio.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,7 +14,32 @@ int main(int argc, char *argv[]) {
   SKP_Silk_SDK_Get_Decoder_Size(&decoderSize);
 
   void *decoderState = malloc(decoderSize);
-  SKP_Silk_SDK_InitDecoder(decoderState);
+  if (SKP_Silk_SDK_InitDecoder(decoderState) != 0) {
+    printf("Failed to init SILK decoder.\n");
+    return 1;
+  }
+
+  if (SDL_Init(SDL_INIT_AUDIO) != 0) {
+    free(decoderState);
+    printf("Failed to init SDL: %s\n", SDL_GetError());
+    return 1;
+  }
+
+  SDL_AudioSpec audioSpec;
+  SDL_memset(&audioSpec, 0, sizeof(audioSpec));
+  audioSpec.freq = 16000;
+  audioSpec.format = AUDIO_S16LSB;
+  audioSpec.channels = 1;
+  audioSpec.samples = 8192;
+
+  SDL_AudioDeviceID audioDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, NULL, 0);
+  if (audioDevice == 0) {
+    free(decoderState);
+    printf("Failed to open SDL audio device: %s\n", SDL_GetError());
+    return 1;
+  }
+
+  SDL_PauseAudioDevice(audioDevice, 0);
 
   int packet = 0;
   char filename[64];
@@ -137,6 +165,13 @@ int main(int argc, char *argv[]) {
 
           printf("Decoded %d samples of voice data.\n", numUncompressedSamples);
           fwrite(uncompressedSamples, sizeof(int16_t), numUncompressedSamples, outputFile);
+
+          if (SDL_QueueAudio(audioDevice, uncompressedSamples, numUncompressedSamples * sizeof(int16_t)) == 0) {
+            printf("Queued audio for playback.\n");
+          } else {
+            printf("Failed to queue audio for playback: %s\n", SDL_GetError());
+          }
+
           break;
         }
 
@@ -180,5 +215,12 @@ int main(int argc, char *argv[]) {
 
   fclose(outputFile);
   free(decoderState);
+
+  while (SDL_GetQueuedAudioSize(audioDevice) > 0) {
+    SDL_Delay(40); // 2x the SILK audio segment size.
+  }
+
+  SDL_CloseAudioDevice(audioDevice);
+
   return 0;
 }

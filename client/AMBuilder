@@ -5,6 +5,7 @@ binary = Telephone.Program(builder, 'telephone')
 
 binary.compiler.includes += [
   os.path.join(builder.sourcePath, 'silk', 'include'),
+  os.path.join(builder.sourcePath, 'sdl', 'include'),
 ]
 
 binary.sources += [
@@ -12,6 +13,10 @@ binary.sources += [
   'crc32.cpp'
 ]
 
-binary.compiler.postlink += [Telephone.silk_sdk.binary]
+binary.compiler.postlink += [
+  Telephone.silk_sdk.binary,
+  os.path.join(builder.sourcePath, 'sdl', 'lib', 'SDL2.lib'),
+  os.path.join(builder.sourcePath, 'sdl', 'lib', 'SDL2main.lib'),
+]
 
 builder.Add(binary)
