@@ -2,6 +2,8 @@
 
 #include "CDetour/detours.h"
 
+#include <string.h>
+
 Telephone g_Telephone;
 SMEXT_LINK(&g_Telephone);
 

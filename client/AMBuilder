@@ -15,8 +15,16 @@ binary.sources += [
 
 binary.compiler.postlink += [
   Telephone.silk_sdk.binary,
-  os.path.join(builder.sourcePath, 'sdl', 'lib', 'SDL2.lib'),
-  os.path.join(builder.sourcePath, 'sdl', 'lib', 'SDL2main.lib'),
 ]
+
+if builder.target_platform == 'windows':
+  binary.compiler.postlink += [
+    os.path.join(builder.sourcePath, 'sdl', 'lib', 'SDL2.lib'),
+    os.path.join(builder.sourcePath, 'sdl', 'lib', 'SDL2main.lib'),
+  ]
+else:
+  binary.compiler.linkflags += [
+    '-lSDL2'
+  ]
 
 builder.Add(binary)
