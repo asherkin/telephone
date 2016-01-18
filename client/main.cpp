@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 uint32_t crc32_16bytes(const void* data, size_t length, uint32_t previousCrc32 = 0);
 
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
   }
 
   SDL_AudioSpec audioSpec;
-  SDL_memset(&audioSpec, 0, sizeof(audioSpec));
+  memset(&audioSpec, 0, sizeof(audioSpec));
   audioSpec.freq = 16000;
   audioSpec.format = AUDIO_S16LSB;
   audioSpec.channels = 1;
@@ -66,7 +67,7 @@ int main(int argc, char *argv[]) {
     fseek(file, -((long)sizeof(uint32_t)), SEEK_END);
 
     size_t bodySize = ftell(file);
-    printf("Body size: %ld\n", bodySize);
+    printf("Body size: %u\n", bodySize);
 
     fseek(file, 0, SEEK_SET);
 
@@ -233,9 +234,11 @@ int main(int argc, char *argv[]) {
 
   free(decoderState);
 
+#ifndef __EMSCRIPTEN__
   while (SDL_GetQueuedAudioSize(audioDevice) > 0) {
     SDL_Delay(40); // 2x the SILK audio segment size.
   }
+#endif
 
   SDL_CloseAudioDevice(audioDevice);
 
