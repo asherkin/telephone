@@ -7,7 +7,6 @@ Telephone.ConfigureForExtension(builder, binary.compiler)
 binary.compiler.defines += ['SOURCEMOD_BUILD']
 
 binary.compiler.includes += [
-# os.path.join(builder.sourcePath, 'silk', 'include'),
   os.path.join(builder.sourcePath, 'libwebsockets', 'include'),
 ]
 
@@ -18,9 +17,16 @@ binary.sources += [
   os.path.join(Telephone.sm_root, 'public', 'asm', 'asm.c'),
 ]
 
-binary.compiler.postlink += [
-# Telephone.silk_sdk.binary,
-  os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libwebsockets.a'),
-]
+if builder.target_platform == 'windows':
+  binary.compiler.postlink += [
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'websockets_static.lib'),
+  ]
+  binary.compiler.linkflags += [
+    'ws2_32.lib',
+  ]
+else:
+  binary.compiler.postlink += [
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libwebsockets.a'),
+  ]
 
 Telephone.extensions += [builder.Add(binary)]

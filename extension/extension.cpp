@@ -1,5 +1,8 @@
 #include "extension.h"
 
+#ifdef strcasecmp
+#undef strcasecmp
+#endif
 #include <libwebsockets.h>
 
 #include <amtl/am-hashset.h>
