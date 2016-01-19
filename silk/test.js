@@ -1,10 +1,11 @@
 var Silk = require('./silk');
 
 var SKP_Silk_SDK_get_version = Silk.cwrap('SKP_Silk_SDK_get_version', 'string', []);
+var SKP_Silk_SDK_Get_Decoder_Size = Silk.cwrap('SKP_Silk_SDK_Get_Decoder_Size', 'number', ['number']);
+var SKP_Silk_SDK_InitDecoder = Silk.cwrap('SKP_Silk_SDK_InitDecoder', 'number', ['number']);
+var SKP_Silk_SDK_Decode = Silk.cwrap('SKP_Silk_SDK_Decode', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 
 console.log(SKP_Silk_SDK_get_version());
-
-var SKP_Silk_SDK_Get_Decoder_Size = Silk.cwrap('SKP_Silk_SDK_Get_Decoder_Size', 'number', ['number']);
 
 var ptrDecoderSize = Silk._malloc(4);
 console.log(SKP_Silk_SDK_Get_Decoder_Size(ptrDecoderSize));
@@ -12,12 +13,8 @@ var decoderSize = Silk.getValue(ptrDecoderSize, 'i32')
 console.log(decoderSize);
 Silk._free(ptrDecoderSize);
 
-var SKP_Silk_SDK_InitDecoder = Silk.cwrap('SKP_Silk_SDK_InitDecoder', 'number', ['number']);
-
 var ptrDecoderState = Silk._malloc(decoderSize);
 console.log(SKP_Silk_SDK_InitDecoder(ptrDecoderState));
-
-var SKP_Silk_SDK_Decode = Silk.cwrap('SKP_Silk_SDK_Decode', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 
 var ptrDecoderControl = Silk._malloc(4 * 5);
 Silk.setValue(ptrDecoderControl + (4 * 0), 16000, 'i32');
