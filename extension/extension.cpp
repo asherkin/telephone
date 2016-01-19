@@ -2,6 +2,7 @@
 
 #include <libwebsockets.h>
 
+#include <amtl/am-hashset.h>
 #include <CDetour/detours.h>
 
 #include <string.h>
@@ -21,14 +22,28 @@ lws_context *websocket;
 #define DEBUG_LOG(...)
 #endif
 
+struct WebsocketHashPolicy
+{
+	static uint32_t hash(const lws *const &value) {
+		return (uint32_t)value;
+	}
+
+	static bool matches(const lws *const &value, const lws *const &key) {
+		return (hash(value) == hash(key));
+	}
+};
+
+typedef ke::HashSet<lws *, WebsocketHashPolicy> WebsocketSet;
+WebsocketSet websockets;
+
 class IClient;
 
 DETOUR_DECL_MEMBER4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
 {
+	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
+
 	// Get it to the other in-game players first.
 	DETOUR_MEMBER_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
-
-	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
 
 #if 0
 	static int packet = 0;
@@ -38,13 +53,20 @@ DETOUR_DECL_MEMBER4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 	fwrite(data, bytes, 1, file);
 	fclose(file);
 #endif
+
+	unsigned char *socketBuffer = (unsigned char *)alloca(LWS_SEND_BUFFER_PRE_PADDING + bytes + LWS_SEND_BUFFER_POST_PADDING);
+	memcpy(&socketBuffer[LWS_SEND_BUFFER_PRE_PADDING], data, bytes);
+
+	for (WebsocketSet::iterator i = websockets.iter(); !i.empty(); i.next()) {
+		lws_write(*i, &socketBuffer[LWS_SEND_BUFFER_PRE_PADDING], bytes, LWS_WRITE_BINARY);
+	}
 }
 
 int callback_http(lws *wsi, lws_callback_reasons reason, void *user, void *in, size_t len)
 {
 	switch (reason) {
 		case LWS_CALLBACK_HTTP: {
-			lws_return_http_status(wsi, 403, "Websocket connections only kthx.");
+			lws_return_http_status(wsi, HTTP_STATUS_FORBIDDEN, "Websocket connections only kthx.");
 			return 1;
 		}
 	}
@@ -57,11 +79,15 @@ int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, 
 	switch (reason) {
 		case LWS_CALLBACK_ESTABLISHED: {
 			DEBUG_LOG(">>> Client connected to voice websocket.");
+			WebsocketSet::Insert insert = websockets.findForAdd(wsi);
+			if (!insert.found()) websockets.add(insert, wsi);
 			break;
 		}
 
 		case LWS_CALLBACK_CLOSED: {
 			DEBUG_LOG(">>> Client disconnected from voice websocket.");
+			WebsocketSet::Result result = websockets.find(wsi);
+			if (result.found()) websockets.remove(result);
 			break;
 		}
 
@@ -87,6 +113,8 @@ void OnGameFrame(bool simulating)
 
 bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 {
+	websockets.init();
+
 	if (!gameconfs->LoadGameConfigFile("telephone.games", &gameConfig, error, maxlength)) {
 		return false;
 	}
