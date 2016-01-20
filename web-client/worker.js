@@ -28,30 +28,34 @@ var ptrSampleCount = Module._malloc(2);
 
 var decoders = [];
 
-function renderSteamId(flags, accountid) {
-  if (flags === 0x01100001) {
-    return '[U:1:' + accountid + ']';
+function renderSteamId(steamAccountFlags, steamAccountId) {
+  if (steamAccountFlags === 0x01100001) {
+    return '[U:1:' + steamAccountId + ']';
   }
-  return flags + '-' + accountid;
+  return steamAccountFlags + '-' + steamAccountId;
 }
 
-function getOrCreateDecoderForSteamId(flags, accountid) {
-  var bucket = decoders[flags];
+function getOrCreateDecoderForSteamId(steamAccountFlags, steamAccountId) {
+  var bucket = decoders[steamAccountFlags];
   if (typeof bucket === 'undefined') {
-    bucket = decoders[flags] = [];
+    bucket = decoders[steamAccountFlags] = [];
   }
 
-  var decoder = bucket[accountid];
+  var decoder = bucket[steamAccountId];
   if (typeof decoder === 'undefined') {
-    decoder = bucket[accountid] = Module._malloc(decoderSize);
+    decoder = bucket[steamAccountId] = Module._malloc(decoderSize);
     SKP_Silk_SDK_InitDecoder(decoder);
-    console.log('Initializing new decoder for ' + renderSteamId(flags, accountid));
+    console.log('Initializing new decoder for ' + renderSteamId(steamAccountFlags, steamAccountId));
   }
 
-  return decoder;
+  return {
+    steamAccountFlags: steamAccountFlags,
+    steamAccountId: steamAccountId,
+    ptrDecoderState: decoder,
+  };
 }
 
-function decodeSilkData(ptrDecoderState, ptrDataIn, dataLength) {
+function decodeSilkData(decoder, ptrDataIn, dataLength) {
   var cursor = 0;
 
   var sampleCount = 0;
@@ -67,7 +71,7 @@ function decodeSilkData(ptrDecoderState, ptrDataIn, dataLength) {
     }
 
     if (length === -1) {
-      SKP_Silk_SDK_InitDecoder(ptrDecoderState);
+      SKP_Silk_SDK_InitDecoder(decoder.ptrDecoderState);
       continue;
     }
 
@@ -75,7 +79,7 @@ function decodeSilkData(ptrDecoderState, ptrDataIn, dataLength) {
     do {
       Module.setValue(ptrSampleCount, maxSamples - sampleCount, 'i16');
 
-      var ret = SKP_Silk_SDK_Decode(ptrDecoderState, ptrDecoderControl, 0, ptrDataIn + cursor, length, ptrSamplesOut + (sampleCount << 1), ptrSampleCount);
+      var ret = SKP_Silk_SDK_Decode(decoder.ptrDecoderState, ptrDecoderControl, 0, ptrDataIn + cursor, length, ptrSamplesOut + (sampleCount << 1), ptrSampleCount);
       if (ret != 0) {
         postMessage({
           type: 'decode-error',
@@ -106,7 +110,8 @@ function decodeSilkData(ptrDecoderState, ptrDataIn, dataLength) {
 
     postMessage({
       type: 'audio-data',
-      id: ptrDecoderState,
+      id: decoder.ptrDecoderState,
+      avatar: (decoder.steamAccountFlags === 0x01100001) ? decoder.steamAccountId : -1,
       sampleRate: sampleRate,
       samples: samplesOut,
     }, [
@@ -127,7 +132,7 @@ function processPacket(e) {
   var steamAccountId = Module.getValue(ptrDataIn + cursor, 'i32');
   cursor += 8;
 
-  var ptrDecoderState = getOrCreateDecoderForSteamId(steamAccountFlags, steamAccountId);
+  var decoder = getOrCreateDecoderForSteamId(steamAccountFlags, steamAccountId);
 
   dataLength -= 4; // The CRC32 at the end.
 
@@ -150,7 +155,7 @@ function processPacket(e) {
         cursor += 2;
 
         if (payloadType === 4) {
-          decodeSilkData(ptrDecoderState, ptrDataIn + cursor, length);
+          decodeSilkData(decoder, ptrDataIn + cursor, length);
         } else {
           postMessage({
             type: 'unsupported-codec',
@@ -211,10 +216,16 @@ function onWebsocketClose(e) {
   });
 }
 
-onmessage = function(e) {
-  if (websocket) websocket.close(1001, 'Changing Server');
+function disconnect() {
+  if (websocket) {
+    websocket.close();
+  }
+}
 
-  websocket = new WebSocket(e.data, 'voice-chat');
+function connectToServer(address) {
+  disconnect();
+
+  websocket = new WebSocket(address, 'voice-chat');
   websocket.binaryType = 'arraybuffer';
   websocket.onopen = onWebsocketOpen;
   websocket.onerror = onWebsocketError;
@@ -222,7 +233,20 @@ onmessage = function(e) {
   websocket.onmessage = processPacket;
 }
 
+onmessage = function(e) {
+  switch(e.data.type) {
+    case 'connect':
+      connectToServer(e.data.address);
+      break;
+    case 'disconnect':
+      disconnect();
+      break;
+    default:
+      console.log(e.data);
+      break;
+  }
+};
+
 //Module._free(ptrSamplesOut);
 //Module._free(ptrSampleCount);
 //Module._free(ptrDecoderControl);
-//Module._free(ptrDecoderState);

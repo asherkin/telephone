@@ -41,7 +41,10 @@
         }
       };
 
-      worker.postMessage("ws://192.168.0.2:9000");
+      worker.postMessage({
+        type: 'connect',
+        address: 'ws://192.168.0.2:9000',
+      });
     </script>
   </body>
 </html>
