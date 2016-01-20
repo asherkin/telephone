@@ -1,3 +1,6 @@
+var Module = {};
+importScripts('silk.js');
+
 var SKP_Silk_SDK_get_version = Module.cwrap('SKP_Silk_SDK_get_version', 'string', []);
 var SKP_Silk_SDK_Get_Decoder_Size = Module.cwrap('SKP_Silk_SDK_Get_Decoder_Size', 'number', ['number']);
 var SKP_Silk_SDK_InitDecoder = Module.cwrap('SKP_Silk_SDK_InitDecoder', 'number', ['number']);
@@ -86,13 +89,22 @@ function decodeSilkData(ptrDecoderState, ptrDataIn, dataLength) {
 
   if (sampleCount > 0) {
     var sampleRate = Module.getValue(ptrDecoderControl, 'i32');
-    var samplesOut = Module.HEAP16.subarray(ptrSamplesOut >> 1, (ptrSamplesOut >> 1) + sampleCount);
+    //var samplesOut = Module.HEAP16.subarray(ptrSamplesOut >> 1, (ptrSamplesOut >> 1) + sampleCount);
+    //var samplesOut = Module.HEAPU8.buffer.slice(ptrSamplesOut, ptrSamplesOut + (sampleCount << 1));
+
+    var samplesOut = new Float32Array(sampleCount);
+    for (var i = 0; i < samplesOut.length; ++i) {
+      samplesOut[i] = Module.HEAP16[(ptrSamplesOut >> 1) + i] / 0xFFFF;
+    }
+
     postMessage({
       type: 'audio-data',
       id: ptrDecoderState,
       sampleRate: sampleRate,
       samples: samplesOut,
-    });
+    }, [
+      samplesOut.buffer,
+    ]);
   }
 }
 
@@ -168,7 +180,7 @@ function processPacket(e) {
   Module._free(ptrDataIn);
 };
 
-var websocket;
+var websocket = null;
 
 function onWebsocketOpen(e) {
   postMessage({
@@ -183,6 +195,8 @@ function onWebsocketError(e) {
 }
 
 function onWebsocketClose(e) {
+  websocket = null;
+
   postMessage({
     type: 'socket-close',
     code: e.code,
@@ -190,10 +204,10 @@ function onWebsocketClose(e) {
   });
 }
 
-onmessage = function(data) {
+onmessage = function(e) {
   if (websocket) websocket.close(1001, 'Changing Server');
 
-  websocket = new WebSocket(data, 'voice-chat');
+  websocket = new WebSocket(e.data, 'voice-chat');
   websocket.binaryType = 'arraybuffer';
   websocket.onopen = onWebsocketOpen;
   websocket.onerror = onWebsocketError;

@@ -6,45 +6,42 @@
   </head>
   <body>
     <script type="text/javascript">
-      var Module = {};
-    </script>
-    <script src="silk.js"></script>
-    <script src="worker.js"></script>
-    <script type="text/javascript">
       var audioContext = new AudioContext();
+
+      var worker = new Worker('worker.js');
 
       var nextPlay = [];
       function playAudioSamples(id, samples, sampleRate) {
         //console.log(sampleRate);
         var audioBuffer = audioContext.createBuffer(1, samples.length, sampleRate);
-
-        var audioData = audioBuffer.getChannelData(0);
-        for (var i = 0; i < samples.length; i++) {
-          audioData[i] = samples[i] / 0xFFFF;
-        }
+        audioBuffer.copyToChannel(samples, 0);
 
         var audioSource = audioContext.createBufferSource();
         audioSource.buffer = audioBuffer;
 
         audioSource.connect(audioContext.destination);
 
-        if (!nextPlay[id] || nextPlay[id] < audioContext.currentTime) nextPlay[id] = audioContext.currentTime;
+        if (!nextPlay[id] || nextPlay[id] < audioContext.currentTime) {
+          //console.log('Start out of sync! ' + id);
+          nextPlay[id] = audioContext.currentTime;
+        }
+
         audioSource.start(nextPlay[id]);
         nextPlay[id] += audioBuffer.duration;
       }
 
-      function postMessage(data) {
-        switch (data.type) {
+      worker.onmessage = function(e) {
+        switch (e.data.type) {
           case 'audio-data':
-            playAudioSamples(data.id, data.samples, data.sampleRate);
+            playAudioSamples(e.data.id, e.data.samples, e.data.sampleRate);
             break;
           default:
-            console.log(data);
+            console.log(e.data);
             break;
         }
       };
 
-      onmessage("ws://192.168.0.2:9000");
+      worker.postMessage("ws://192.168.0.2:9000");
     </script>
   </body>
 </html>
