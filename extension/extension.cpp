@@ -105,7 +105,7 @@ int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, 
 
 lws_protocols protocols[] = {
 	{ "http-only", callback_http, 0, 0 },
-	{ "voice-chat", callback_voice, 0, 512 },
+	{ "voice-chat", callback_voice, 0, 2048 },
 	{ nullptr, nullptr, 0, 0 },
 };
 
