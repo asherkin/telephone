@@ -1,6 +1,3 @@
-var Module = {};
-importScripts('silk.js');
-
 var SKP_Silk_SDK_get_version = Module.cwrap('SKP_Silk_SDK_get_version', 'string', []);
 var SKP_Silk_SDK_Get_Decoder_Size = Module.cwrap('SKP_Silk_SDK_Get_Decoder_Size', 'number', ['number']);
 var SKP_Silk_SDK_InitDecoder = Module.cwrap('SKP_Silk_SDK_InitDecoder', 'number', ['number']);
@@ -92,6 +89,7 @@ function decodeSilkData(ptrDecoderState, ptrDataIn, dataLength) {
     var samplesOut = Module.HEAP16.subarray(ptrSamplesOut >> 1, (ptrSamplesOut >> 1) + sampleCount);
     postMessage({
       type: 'audio-data',
+      id: ptrDecoderState,
       sampleRate: sampleRate,
       samples: samplesOut,
     });
@@ -192,10 +190,10 @@ function onWebsocketClose(e) {
   });
 }
 
-onmessage = function(e) {
+onmessage = function(data) {
   if (websocket) websocket.close(1001, 'Changing Server');
 
-  websocket = new WebSocket(e.data, 'voice-chat');
+  websocket = new WebSocket(data, 'voice-chat');
   websocket.binaryType = 'arraybuffer';
   websocket.onopen = onWebsocketOpen;
   websocket.onerror = onWebsocketError;

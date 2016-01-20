@@ -6,11 +6,15 @@
   </head>
   <body>
     <script type="text/javascript">
+      var Module = {};
+    </script>
+    <script src="silk.js"></script>
+    <script src="worker.js"></script>
+    <script type="text/javascript">
       var audioContext = new AudioContext();
 
-      var worker = new Worker('worker.js');
-
-      function playAudioSamples(samples, sampleRate) {
+      var nextPlay = [];
+      function playAudioSamples(id, samples, sampleRate) {
         //console.log(sampleRate);
         var audioBuffer = audioContext.createBuffer(1, samples.length, sampleRate);
 
@@ -23,21 +27,24 @@
         audioSource.buffer = audioBuffer;
 
         audioSource.connect(audioContext.destination);
-        audioSource.start();
+
+        if (!nextPlay[id] || nextPlay[id] < audioContext.currentTime) nextPlay[id] = audioContext.currentTime;
+        audioSource.start(nextPlay[id]);
+        nextPlay[id] += audioBuffer.duration;
       }
 
-      worker.onmessage = function(e) {
-        switch (e.data.type) {
+      function postMessage(data) {
+        switch (data.type) {
           case 'audio-data':
-            playAudioSamples(e.data.samples, e.data.sampleRate);
+            playAudioSamples(data.id, data.samples, data.sampleRate);
             break;
           default:
-            console.log(e.data);
+            console.log(data);
             break;
         }
       };
 
-      worker.postMessage("ws://192.168.0.2:9000");
+      onmessage("ws://192.168.0.2:9000");
     </script>
   </body>
 </html>
