@@ -10,8 +10,9 @@
 
       var worker = new Worker('worker.js');
 
-      function playAudioSamples(samples) {
-        var audioBuffer = audioContext.createBuffer(1, samples.length, 16000);
+      function playAudioSamples(samples, sampleRate) {
+        //console.log(sampleRate);
+        var audioBuffer = audioContext.createBuffer(1, samples.length, sampleRate);
 
         var audioData = audioBuffer.getChannelData(0);
         for (var i = 0; i < samples.length; i++) {
@@ -28,20 +29,13 @@
       worker.onmessage = function(e) {
         switch (e.data.type) {
           case 'audio-data':
-            playAudioSamples(e.data.samples);
+            playAudioSamples(e.data.samples, e.data.sampleRate);
             break;
           default:
             console.log(e.data);
+            break;
         }
       };
-
-      /* Split the steamid into 2 parts, store in an array as array[high][low]. Sparse arrays are efficient and since the high bits are the same for all regular users usage should be minimal. */
-
-      /* One worker per server connection, keep Emscripten heap size down? */
-
-      /* One worker per user per server, keep Emscripten heap size down even more and no need to worry about decoder state? */
-      /* Would need websocket on main thread though, or nested workers - which could pose problems getting audio back. */
-      /* Copying to the first worker then transfering to the main thread could work well though. */
 
       worker.postMessage("ws://192.168.0.2:9000");
     </script>
