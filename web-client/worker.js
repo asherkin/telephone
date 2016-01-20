@@ -28,6 +28,13 @@ var ptrSampleCount = Module._malloc(2);
 
 var decoders = [];
 
+function renderSteamId(flags, accountid) {
+  if (flags === 0x01100001) {
+    return '[U:1:' + accountid + ']';
+  }
+  return flags + '-' + accountid;
+}
+
 function getOrCreateDecoderForSteamId(flags, accountid) {
   var bucket = decoders[flags];
   if (typeof bucket === 'undefined') {
@@ -38,7 +45,7 @@ function getOrCreateDecoderForSteamId(flags, accountid) {
   if (typeof decoder === 'undefined') {
     decoder = bucket[accountid] = Module._malloc(decoderSize);
     SKP_Silk_SDK_InitDecoder(decoder);
-    console.log('Initializing new decoder for ' + flags + ' ' + accountid);
+    console.log('Initializing new decoder for ' + renderSteamId(flags, accountid));
   }
 
   return decoder;
