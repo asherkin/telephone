@@ -3,15 +3,22 @@
   <head>
     <meta charset="utf-8">
     <title>Telephone</title>
+    <style type="text/css"></style>
   </head>
   <body>
-    <script type="text/javascript">
-      var audioContext = new AudioContext();
+    <div id="container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.6/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.6/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+    <script type="text/babel">
+      var audioContext = window.AudioContext ? new AudioContext() : window.webkitAudioContext ? new webkitAudioContext() : undefined;
 
       var worker = new Worker('worker.js');
 
       var nextPlay = [];
       function playAudioSamples(id, samples, sampleRate) {
+        var currentTime = audioContext.currentTime;
+
         //console.log(sampleRate);
         var audioBuffer = audioContext.createBuffer(1, samples.length, sampleRate);
         audioBuffer.copyToChannel(samples, 0);
@@ -21,30 +28,130 @@
 
         audioSource.connect(audioContext.destination);
 
-        if (!nextPlay[id] || nextPlay[id] < audioContext.currentTime) {
-          //console.log('Start out of sync! ' + id);
-          nextPlay[id] = audioContext.currentTime;
+        if (!nextPlay[id]) {
+          console.log('New audio stream, buffering...');
+          nextPlay[id] = currentTime + 1.0;
+        } else if (nextPlay[id] < currentTime) {
+          console.log('Audio stream fell behind by ' + (currentTime - nextPlay[id]) + ' seconds, buffering...');
+          nextPlay[id] = currentTime + 1.0;
         }
 
         audioSource.start(nextPlay[id]);
         nextPlay[id] += audioBuffer.duration;
       }
 
+      var Talker = function(props) {
+        var avatar = 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg';
+        if (props.talker.avatar) {
+          avatar = 'https://www.traderep.org/avatar/' + props.talker.avatar;
+        }
+
+        return <img src={avatar} />;
+      };
+
+      var Talkers = function(props) {
+        return (
+          <div>
+            {props.talkers.map(function(talker) {
+              return <Talker key={talker.id} talker={talker} />;
+            })}
+          </div>
+        );
+      }
+
+      var Page = React.createClass({
+        getInitialState: function() {
+          return {
+            serverAddress: 'ws://192.168.0.2:9000',
+            connected: false,
+            talkers: [],
+          };
+        },
+        onServerAddressChange: function(event) {
+          this.setState({ serverAddress: event.target.value });
+        },
+        connect: function(event, address) {
+          worker.postMessage({
+            type: 'connect',
+            address: this.state.serverAddress,
+          });
+        },
+        disconnect: function(event) {
+          worker.postMessage({
+            type: 'disconnect',
+          });
+        },
+        render: function() {
+          var containerStyle = {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          };
+          if (this.state.connected) {
+            return (
+              <div style={containerStyle}>
+                <button type="button" onClick={this.disconnect}>Disconnect</button>
+                <Talkers talkers={this.state.talkers} />
+              </div>
+            );
+          } else {
+            return (
+              <div style={containerStyle}>
+                <div>
+                  <input type="text" value={this.state.serverAddress} onChange={this.onServerAddressChange} />
+                  <button type="button" onClick={this.connect}>Connect</button>
+                </div>
+              </div>
+            );
+          }
+        },
+      });
+
+      var page = ReactDOM.render(<Page />, document.getElementById('container'));
+
+      var talkers = [];
+
+      setInterval(function() {
+        var currentTime = audioContext.currentTime;
+
+        var flatTalkers = [];
+        for (var id in talkers) {
+          if (talkers[id].time < (currentTime - 1.0)) {
+            delete nextPlay[id];
+            delete talkers[id];
+            continue;
+          }
+
+          flatTalkers.push(talkers[id]);
+        }
+
+        page.setState({ talkers: flatTalkers });
+      }, 500);
+
       worker.onmessage = function(e) {
         switch (e.data.type) {
           case 'audio-data':
             playAudioSamples(e.data.id, e.data.samples, e.data.sampleRate);
+            talkers[e.data.id] = {
+              id: e.data.id,
+              avatar: e.data.avatar,
+              time: audioContext.currentTime,
+            };
+            break;
+          case 'socket-open':
+            nextPlay = [];
+            page.setState({ connected: true });
+            break;
+          case 'socket-close':
+            talkers = [];
+            page.setState({ connected: false });
             break;
           default:
             console.log(e.data);
             break;
         }
       };
-
-      worker.postMessage({
-        type: 'connect',
-        address: 'ws://192.168.0.2:9000',
-      });
     </script>
   </body>
 </html>

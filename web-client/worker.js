@@ -220,6 +220,14 @@ function disconnect() {
   if (websocket) {
     websocket.close();
   }
+
+  for (var bucket in decoders) {
+    for (var decoder in bucket) {
+      Module._free(decoders[bucket][decoder]);
+    }
+  }
+
+  decoders = [];
 }
 
 function connectToServer(address) {
