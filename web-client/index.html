@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Telephone</title>
     <style type="text/css"></style>
   </head>
@@ -75,6 +76,12 @@
           this.setState({ serverAddress: event.target.value });
         },
         connect: function(event, address) {
+          // Unlock the Web Audio API for iOS
+          var audioSource = audioContext.createBufferSource();
+          audioSource.buffer = audioContext.createBuffer(1, 1, 32000);
+          audioSource.connect(audioContext.destination);
+          audioSource.start();
+
           worker.postMessage({
             type: 'connect',
             address: this.state.serverAddress,
