@@ -21,7 +21,11 @@
 
         //console.log(sampleRate);
         var audioBuffer = audioContext.createBuffer(1, samples.length, sampleRate);
-        audioBuffer.copyToChannel(samples, 0);
+        if (audioBuffer.copyToChannel) {
+          audioBuffer.copyToChannel(samples, 0);
+        } else {
+          audioBuffer.getChannelData(0).set(samples);
+        }
 
         var audioSource = audioContext.createBufferSource();
         audioSource.buffer = audioBuffer;

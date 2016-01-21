@@ -103,16 +103,18 @@ function decodeSilkData(decoder, ptrDataIn, dataLength) {
     //var samplesOut = Module.HEAP16.subarray(ptrSamplesOut >> 1, (ptrSamplesOut >> 1) + sampleCount);
     //var samplesOut = Module.HEAPU8.buffer.slice(ptrSamplesOut, ptrSamplesOut + (sampleCount << 1));
 
-    var samplesOut = new Float32Array(sampleCount);
-    for (var i = 0; i < samplesOut.length; ++i) {
-      samplesOut[i] = Module.HEAP16[(ptrSamplesOut >> 1) + i] / 0xFFFF;
+    var samplesOut = new Float32Array(sampleCount * 2);
+    for (var i = 0; i < sampleCount; ++i) {
+      var sample = Module.HEAP16[(ptrSamplesOut >> 1) + i] / 0xFFFF;
+      samplesOut[i * 2] = sample;
+      samplesOut[(i * 2) + 1] = sample;
     }
 
     postMessage({
       type: 'audio-data',
       id: decoder.ptrDecoderState,
-      avatar: (decoder.steamAccountFlags === 0x01100001) ? decoder.steamAccountId : -1,
-      sampleRate: sampleRate,
+      avatar: (decoder.steamAccountFlags === 0x01100001) ? decoder.steamAccountId : null,
+      sampleRate: sampleRate * 2,
       samples: samplesOut,
     }, [
       samplesOut.buffer,
