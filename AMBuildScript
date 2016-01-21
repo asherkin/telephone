@@ -211,5 +211,5 @@ Telephone = TelephoneConfig()
 Telephone.detectSDKs()
 Telephone.configure()
 
-builder.RunBuildScripts(['silk/AMBuilder', 'extension/AMBuilder', 'client/AMBuilder'], { 'Telephone': Telephone })
+builder.RunBuildScripts(['extension/AMBuilder'], { 'Telephone': Telephone })
 builder.RunScript('PackageScript', { 'Telephone': Telephone })
