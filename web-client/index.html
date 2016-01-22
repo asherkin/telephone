@@ -4,7 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Telephone</title>
-    <style type="text/css"></style>
+    <style type="text/css">
+    html, body, #container {
+      margin: 0;
+      height: 100%;
+    }
+    </style>
   </head>
   <body>
     <div id="container"></div>
@@ -51,7 +56,7 @@
           avatar = 'https://www.traderep.org/avatar/' + props.talker.avatar;
         }
 
-        return <img src={avatar} />;
+        return <img style={{ marginTop: '1em', marginLeft: '0.5em', marginRight: '0.5em' }} src={avatar} />;
       };
 
       var Talkers = function(props) {
@@ -98,6 +103,7 @@
         },
         render: function() {
           var containerStyle = {
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
