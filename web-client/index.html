@@ -69,6 +69,8 @@
           return {
             serverAddress: 'ws://192.168.0.2:9000',
             connected: false,
+            connecting: false,
+            connectionError: null,
             talkers: [],
           };
         },
@@ -82,12 +84,14 @@
           audioSource.connect(audioContext.destination);
           audioSource.start();
 
+          page.setState({ connecting: true, connectionError: 'Failed to connect to server.' });
           worker.postMessage({
             type: 'connect',
             address: this.state.serverAddress,
           });
         },
         disconnect: function(event) {
+          page.setState({ connectionError: '' });
           worker.postMessage({
             type: 'disconnect',
           });
@@ -106,12 +110,20 @@
                 <Talkers talkers={this.state.talkers} />
               </div>
             );
+          } else if (this.state.connecting) {
+            return (
+              <div style={containerStyle}>
+                <div>
+                  <span>Connecting...</span> <button type="button" onClick={this.disconnect}>Cancel</button>
+                </div>
+              </div>
+            );
           } else {
             return (
               <div style={containerStyle}>
                 <div>
-                  <input type="text" value={this.state.serverAddress} onChange={this.onServerAddressChange} />
-                  <button type="button" onClick={this.connect}>Connect</button>
+                  {this.state.connectionError ? <div>{this.state.connectionError}</div> : null}
+                  <input type="text" value={this.state.serverAddress} onChange={this.onServerAddressChange} /> <button type="button" onClick={this.connect}>Connect</button>
                 </div>
               </div>
             );
@@ -152,11 +164,14 @@
             break;
           case 'socket-open':
             nextPlay = [];
-            page.setState({ connected: true });
+            page.setState({ connected: true, connecting: false, connectionError: null });
             break;
           case 'socket-close':
             talkers = [];
-            page.setState({ connected: false });
+            page.setState({ connected: false, connecting: false });
+            if (page.state.connectionError === null) {
+              page.setState({ connectionError: 'Server connection lost.' });
+            }
             break;
           default:
             console.log(e.data);
