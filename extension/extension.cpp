@@ -10,8 +10,12 @@
 
 #include <string.h>
 
+#include "IConplex.h"
+
 Telephone g_Telephone;
 SMEXT_LINK(&g_Telephone);
+
+IConplex *conplex;
 
 IGameConfig *gameConfig;
 
@@ -109,6 +113,57 @@ lws_protocols protocols[] = {
 	{ nullptr, nullptr, 0, 0 },
 };
 
+IConplex::ProtocolDetectionState ConplexHTTPDetector(const char *id, const unsigned char *buffer, unsigned int bufferLength)
+{
+	bool hasSpace = false;
+	bool hasSlash = false;
+	for (unsigned int i = 0; i < bufferLength; ++i) {
+		if (hasSpace) {
+			hasSlash = (buffer[i] == '/');
+			return hasSlash ? IConplex::Match : IConplex::NoMatch;
+		}
+
+		hasSpace = (i >= 3) && (buffer[i] == ' ');
+		if (hasSpace) {
+			continue;
+		}
+
+		if (buffer[i] < 'A' || buffer[i] > 'Z') {
+			return IConplex::NoMatch;
+		}
+	}
+
+	return IConplex::NeedMoreData;
+}
+
+bool ConplexHTTPHandler(const char *id, int socket, const sockaddr *address, unsigned int addressLength)
+{
+	lws_adopt_socket(websocket, socket);
+	return true; // LWS will close the socket on failure.
+}
+
+IConplex::ProtocolDetectionState ConplexHTTPSDetector(const char *id, const unsigned char *buffer, unsigned int bufferLength)
+{
+	if (bufferLength <= 0) return IConplex::NeedMoreData;
+	if (buffer[0] != 0x16) return IConplex::NoMatch;
+	if (bufferLength <= 1) return IConplex::NeedMoreData;
+	if (buffer[1] != 0x03) return IConplex::NoMatch;
+	if (bufferLength <= 5) return IConplex::NeedMoreData;
+	if (buffer[5] != 0x01) return IConplex::NoMatch;
+	if (bufferLength <= 6) return IConplex::NeedMoreData;
+	if (buffer[6] != 0x00) return IConplex::NoMatch;
+	if (bufferLength <= 8) return IConplex::NeedMoreData;
+	if (((buffer[3] * 256) + buffer[4]) != ((buffer[7] * 256) + buffer[8] + 4)) return IConplex::NoMatch;
+	return IConplex::Match;
+}
+
+bool ConplexHTTPSHandler(const char *id, int socket, const sockaddr *address, unsigned int addressLength)
+{
+	// We don't actually handle HTTPS connections yet.
+	// Implementation will be the same as ConplexHTTPHandler apart from handing off to a dedicated HTTPS daemon.
+	return false;
+}
+
 void OnGameFrame(bool simulating)
 {
 	lws_service(websocket, 0);
@@ -132,8 +187,27 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		return false;
 	}
 
+	sharesys->AddDependency(myself, "conplex.ext", true, true);
+
+	SM_GET_IFACE(CONPLEX, conplex);
+
+	if (!conplex->RegisterProtocolHandler("HTTP", ConplexHTTPDetector, ConplexHTTPHandler)) {
+		gameconfs->CloseGameConfigFile(gameConfig);
+
+		strncpy(error, "Failed to register handler for HTTP protocol", maxlength);
+		return false;
+	}
+
+	if (!conplex->RegisterProtocolHandler("HTTPS", ConplexHTTPSDetector, ConplexHTTPSHandler)) {
+		gameconfs->CloseGameConfigFile(gameConfig);
+
+		conplex->DropProtocolHandler("HTTP");
+		strncpy(error, "Failed to register handler for HTTPS protocol", maxlength);
+		return false;
+	}
+
 	lws_context_creation_info websocketParams = {};
-	websocketParams.port = 9000;
+	websocketParams.port = CONTEXT_PORT_NO_LISTEN;
 	websocketParams.protocols = protocols;
 	websocketParams.gid = -1;
 	websocketParams.uid = -1;
@@ -157,9 +231,32 @@ void Telephone::SDK_OnUnload()
 {
 	smutils->RemoveGameFrameHook(OnGameFrame);
 
+	if (conplex) {
+		conplex->DropProtocolHandler("HTTP");
+		conplex->DropProtocolHandler("HTTPS");
+	}
+
 	lws_context_destroy(websocket);
 
 	detourBroadcastVoiceData->DisableDetour();
 
 	gameconfs->CloseGameConfigFile(gameConfig);
+}
+
+bool Telephone::QueryInterfaceDrop(SMInterface *interface)
+{
+	if (conplex && interface == conplex) {
+		return false;
+	}
+
+	return true;
+}
+
+void Telephone::NotifyInterfaceDrop(SMInterface *interface)
+{
+	if (conplex && interface == conplex) {
+		conplex->DropProtocolHandler("HTTP");
+		conplex->DropProtocolHandler("HTTPS");
+		conplex = NULL;
+	}
 }
