@@ -24,7 +24,7 @@
 #define LWS_LIBRARY_VERSION_NUMBER (LWS_LIBRARY_VERSION_MAJOR*1000000)+(LWS_LIBRARY_VERSION_MINOR*1000)+LWS_LIBRARY_VERSION_PATCH
 
 /* The current git commit hash that we're building from */
-#define LWS_BUILD_HASH "1f8ec7c"
+#define LWS_BUILD_HASH "ba119e9"
 
 /* Build with OpenSSL support */
 /* #undef LWS_OPENSSL_SUPPORT */
@@ -63,7 +63,7 @@
 /* #undef LWS_MINGW_SUPPORT */
 
 /* Use the BSD getifaddrs that comes with libwebsocket, for uclibc support */
-#define LWS_BUILTIN_GETIFADDRS
+/* #undef LWS_BUILTIN_GETIFADDRS */
 
 /* use SHA1() not internal libwebsockets_SHA1 */
 /* #undef LWS_SHA1_USE_OPENSSL_NAME */
@@ -72,6 +72,6 @@
 /* #undef LWS_SSL_SERVER_WITH_ECDH_CERT */
 
 /* Maximum supported service threads */
-#define LWS_MAX_SMP 32
+#define LWS_MAX_SMP 1
 
 

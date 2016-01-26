@@ -35,8 +35,9 @@ namespace {
 }
 using namespace mbed::Sockets::v0;
 
+
+struct sockaddr_in;
 struct lws;
-struct lws_context;
 
 class lws_conn {
 	public:
@@ -95,6 +96,7 @@ extern "C" {
 #endif
 
 #ifdef MBED_OPERATORS
+struct sockaddr_in;
 #define LWS_POSIX 0
 #else
 #define LWS_POSIX 1
@@ -119,6 +121,7 @@ extern "C" {
 
 #define LWS_INLINE __inline
 #define LWS_VISIBLE
+#define LWS_WARN_UNUSED_RESULT
 
 #ifdef LWS_DLL
 #ifdef LWS_INTERNAL
@@ -150,8 +153,10 @@ extern "C" {
 
 #if defined(__GNUC__)
 #define LWS_VISIBLE __attribute__((visibility("default")))
+#define LWS_WARN_UNUSED_RESULT __attribute__ ((warn_unused_result))
 #else
 #define LWS_VISIBLE
+#define LWS_WARN_UNUSED_RESULT
 #endif
 
 #if defined(__ANDROID__)
@@ -1298,6 +1303,11 @@ extern int lws_extension_callback_pm_deflate(
  *		allocated for the lifetime of the context).  If the pool is
  *		busy new incoming connections must wait for accept until one
  *		becomes free.
+ * @count_threads: how many contexts to create in an array, 0 = 1
+ * @fd_limit_per_thread: nonzero means restrict each service thread to this
+ *		many fds, 0 means the default which is divide the process fd
+ *		limit by the number of threads.
+ *
  */
 
 struct lws_context_creation_info {
@@ -1328,6 +1338,9 @@ struct lws_context_creation_info {
 
 	short max_http_header_data;
 	short max_http_header_pool;
+
+	unsigned int count_threads;
+	unsigned int fd_limit_per_thread;
 
 	/* Add new things just above here ---^
 	 * This is part of the ABI, don't needlessly break compatibility
@@ -1400,11 +1413,18 @@ lws_context_destroy(struct lws_context *context);
 LWS_VISIBLE LWS_EXTERN int
 lws_service(struct lws_context *context, int timeout_ms);
 
+LWS_VISIBLE LWS_EXTERN int
+lws_service_tsi(struct lws_context *context, int timeout_ms, int tsi);
+
+LWS_VISIBLE LWS_EXTERN void
+lws_cancel_service_pt(struct lws *wsi);
+
 LWS_VISIBLE LWS_EXTERN void
 lws_cancel_service(struct lws_context *context);
 
 LWS_VISIBLE LWS_EXTERN int
-lws_interface_to_sa(int ipv6, const char *ifname, struct sockaddr_in *addr, size_t addrlen);
+lws_interface_to_sa(int ipv6, const char *ifname, struct sockaddr_in *addr,
+		    size_t addrlen);
 
 LWS_VISIBLE LWS_EXTERN const unsigned char *
 lws_token_to_string(enum lws_token_indexes token);
@@ -1429,7 +1449,7 @@ lws_add_http_header_status(struct lws *wsi,
 			   unsigned int code, unsigned char **p,
 			   unsigned char *end);
 
-LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_http_transaction_completed(struct lws *wsi);
 
 #ifdef LWS_USE_LIBEV
@@ -1448,6 +1468,10 @@ lws_sigint_cb(struct ev_loop *loop, struct ev_signal *watcher, int revents);
 
 LWS_VISIBLE LWS_EXTERN int
 lws_service_fd(struct lws_context *context, struct lws_pollfd *pollfd);
+
+LWS_VISIBLE LWS_EXTERN int
+lws_service_fd_tsi(struct lws_context *context, struct lws_pollfd *pollfd,
+		   int tsi);
 
 LWS_VISIBLE LWS_EXTERN void *
 lws_context_user(struct lws_context *context);
@@ -1473,6 +1497,7 @@ enum pending_timeout {
 	PENDING_TIMEOUT_HTTP_CONTENT				= 10,
 	PENDING_TIMEOUT_AWAITING_CLIENT_HS_SEND			= 11,
 	PENDING_FLUSH_STORED_SEND_BEFORE_CLOSE			= 12,
+	PENDING_TIMEOUT_SHUTDOWN_FLUSH				= 13,
 
 	/****** add new things just above ---^ ******/
 };
@@ -1632,23 +1657,26 @@ LWS_VISIBLE LWS_EXTERN size_t
 lws_get_peer_write_allowance(struct lws *wsi);
 
 /* deprecated, use lws_client_connect_via_info() */
-LWS_VISIBLE LWS_EXTERN struct lws *
+LWS_VISIBLE LWS_EXTERN struct lws * LWS_WARN_UNUSED_RESULT
 lws_client_connect(struct lws_context *clients, const char *address,
 		   int port, int ssl_connection, const char *path,
 		   const char *host, const char *origin, const char *protocol,
 		   int ietf_version_or_minus_one);
 /* deprecated, use lws_client_connect_via_info() */
-LWS_VISIBLE LWS_EXTERN struct lws *
+LWS_VISIBLE LWS_EXTERN struct lws * LWS_WARN_UNUSED_RESULT
 lws_client_connect_extended(struct lws_context *clients, const char *address,
 			    int port, int ssl_connection, const char *path,
 			    const char *host, const char *origin,
 			    const char *protocol, int ietf_version_or_minus_one,
 			    void *userdata);
 
-LWS_VISIBLE LWS_EXTERN struct lws *
+LWS_VISIBLE LWS_EXTERN struct lws * LWS_WARN_UNUSED_RESULT
 lws_client_connect_via_info(struct lws_client_connect_info * ccinfo);
 
-LWS_VISIBLE LWS_EXTERN const char *
+LWS_VISIBLE LWS_EXTERN struct lws *
+lws_adopt_socket(struct lws_context *context, lws_sockfd_type accept_fd);
+
+LWS_VISIBLE LWS_EXTERN const char * LWS_WARN_UNUSED_RESULT
 lws_canonical_hostname(struct lws_context *context);
 
 
@@ -1659,16 +1687,16 @@ lws_get_peer_addresses(struct lws *wsi, lws_sockfd_type fd, char *name,
 LWS_VISIBLE LWS_EXTERN int
 lws_get_random(struct lws_context *context, void *buf, int len);
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_daemonize(const char *_lock_path);
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_send_pipe_choked(struct lws *wsi);
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_partial_buffered(struct lws *wsi);
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_frame_is_binary(struct lws *wsi);
 
 LWS_VISIBLE LWS_EXTERN int
@@ -1686,10 +1714,10 @@ lws_b64_encode_string(const char *in, int in_len, char *out, int out_size);
 LWS_VISIBLE LWS_EXTERN int
 lws_b64_decode_string(const char *in, char *out, int out_size);
 
-LWS_VISIBLE LWS_EXTERN const char *
+LWS_VISIBLE LWS_EXTERN const char * LWS_WARN_UNUSED_RESULT
 lws_get_library_version(void);
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_parse_uri(char *p, const char **prot, const char **ads, int *port,
 	      const char **path);
 
@@ -1712,10 +1740,10 @@ lws_parse_uri(char *p, const char **prot, const char **ads, int *port,
  *  will fail with a nonzero return code.
  */
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_hdr_total_length(struct lws *wsi, enum lws_token_indexes h);
 
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_hdr_fragment_length(struct lws *wsi, enum lws_token_indexes h, int frag_idx);
 
 /*
@@ -1727,7 +1755,7 @@ lws_hdr_copy(struct lws *wsi, char *dest, int len, enum lws_token_indexes h);
 
 /*
  * copies only fragment frag_idx of a header.  Normally this is only useful
- * to parse URI arguments like ?x=1&y=2, oken index WSI_TOKEN_HTTP_URI_ARGS
+ * to parse URI arguments like ?x=1&y=2, token index WSI_TOKEN_HTTP_URI_ARGS
  * fragment 0 will contain "x=1" and fragment 1 "y=2"
  */
 LWS_VISIBLE LWS_EXTERN int
@@ -1736,11 +1764,14 @@ lws_hdr_copy_fragment(struct lws *wsi, char *dest, int len,
 
 
 /* get the active file operations struct */
-LWS_VISIBLE LWS_EXTERN struct lws_plat_file_ops *
+LWS_VISIBLE LWS_EXTERN struct lws_plat_file_ops * LWS_WARN_UNUSED_RESULT
 lws_get_fops(struct lws_context *context);
 
-LWS_VISIBLE LWS_EXTERN struct lws_context *
+LWS_VISIBLE LWS_EXTERN struct lws_context * LWS_WARN_UNUSED_RESULT
 lws_get_context(const struct lws *wsi);
+
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
+lws_get_count_threads(struct lws_context *context);
 
 /*
  * Wsi-associated File Operations access helpers
@@ -1757,7 +1788,7 @@ lws_get_context(const struct lws *wsi);
  * without having to deal with differences between platforms.
  */
 
-static LWS_INLINE lws_filefd_type
+static LWS_INLINE lws_filefd_type LWS_WARN_UNUSED_RESULT
 lws_plat_file_open(struct lws *wsi, const char *filename,
 		   unsigned long *filelen, int flags)
 {
@@ -1777,7 +1808,7 @@ lws_plat_file_seek_cur(struct lws *wsi, lws_filefd_type fd, long offset)
 	return lws_get_fops(lws_get_context(wsi))->seek_cur(wsi, fd, offset);
 }
 
-static LWS_INLINE int
+static LWS_INLINE int LWS_WARN_UNUSED_RESULT
 lws_plat_file_read(struct lws *wsi, lws_filefd_type fd, unsigned long *amount,
 		   unsigned char *buf, unsigned long len)
 {
@@ -1785,7 +1816,7 @@ lws_plat_file_read(struct lws *wsi, lws_filefd_type fd, unsigned long *amount,
 							len);
 }
 
-static LWS_INLINE int
+static LWS_INLINE int LWS_WARN_UNUSED_RESULT
 lws_plat_file_write(struct lws *wsi, lws_filefd_type fd, unsigned long *amount,
 		    unsigned char *buf, unsigned long len)
 {
@@ -1803,7 +1834,7 @@ lws_read(struct lws *wsi, unsigned char *buf, size_t len);
 #ifndef LWS_NO_EXTENSIONS
 /* deprecated */
 #define lws_get_internal_extensions() NULL
-LWS_VISIBLE LWS_EXTERN int
+LWS_VISIBLE LWS_EXTERN int LWS_WARN_UNUSED_RESULT
 lws_ext_parse_options(const struct lws_extension *ext, struct lws *wsi,
 		       void *ext_user, const struct lws_ext_options *opts, const char *o, int len);
 #endif
