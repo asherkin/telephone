@@ -8,8 +8,6 @@ class Telephone: public SDKExtension
 public: // SDKExtension
 	virtual bool SDK_OnLoad(char *error, size_t maxlength, bool late);
 	virtual void SDK_OnUnload();
-	virtual bool QueryInterfaceDrop(SMInterface *interface);
-	virtual void NotifyInterfaceDrop(SMInterface *interface);
 };
 
 #endif // _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
