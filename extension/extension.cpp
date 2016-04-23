@@ -132,6 +132,10 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		return false;
 	}
 
+#ifdef NDEBUG
+	lws_set_log_level(LLL_ERR | LLL_WARN, nullptr);
+#endif
+
 	lws_context_creation_info websocketParams = {};
 	websocketParams.port = 9000;
 	websocketParams.protocols = protocols;
