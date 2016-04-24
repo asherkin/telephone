@@ -21,6 +21,7 @@
 		{
 			/*
 			 * String: "Sending voice from: %s - playerslot: %d\n"
+			 * Wildcard the first few bytes to play nice with existing detours.
 			 */
 			"BroadcastVoiceData"
 			{
