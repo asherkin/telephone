@@ -147,24 +147,24 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		return false;
 	}
 
-	netadr_t *net_local_adr;
-	if (!gameConfig->GetAddress("net_local_adr", &net_local_adr) || !net_local_adr) {
-		gameconfs->CloseGameConfigFile(gameConfig);
-
-		strncpy(error, "Error getting net_local_adr address", maxlength);
-		return false;
-	}
-
-	char ifaceIp[16];
-	smutils->Format(ifaceIp, sizeof(ifaceIp), "%u.%u.%u.%u", net_local_adr->ip[0], net_local_adr->ip[1], net_local_adr->ip[2], net_local_adr->ip[3]);
-	DEBUG_LOG(">>> Got host ip: %s", ifaceIp);
+	netadr_t *net_local_adr = nullptr;
+	gameConfig->GetAddress("net_local_adr", (void **)&net_local_adr);
 
 #ifdef NDEBUG
 	lws_set_log_level(LLL_ERR | LLL_WARN, nullptr);
 #endif
 
 	lws_context_creation_info websocketParams = {};
-	websocketParams.iface = ifaceIp;
+
+	if (net_local_adr) {
+		char ifaceIp[16];
+		smutils->Format(ifaceIp, sizeof(ifaceIp), "%u.%u.%u.%u", net_local_adr->ip[0], net_local_adr->ip[1], net_local_adr->ip[2], net_local_adr->ip[3]);
+		DEBUG_LOG(">>> Got host ip: %s", ifaceIp);
+		websocketParams.iface = ifaceIp;
+	} else {
+		smutils->LogError(myself, "WARNING: Failed to find net_local_adr, will bind to all interfaces.");
+	}
+
 	websocketParams.port = 9000;
 	websocketParams.protocols = protocols;
 	websocketParams.gid = -1;

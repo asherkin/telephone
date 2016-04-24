@@ -2,29 +2,7 @@
 {
 	"#default"
 	{
-		"Signatures"
-		{
-			/*
-			 * String: "Sending voice from: %s - playerslot: %d\n"
-			 */
-			"BroadcastVoiceData"
-			{
-				"library" "engine"
-				"linux"   "@_Z21SV_BroadcastVoiceDataP7IClientiPcx"
-			}
-			/*
-			 * String: "TCP/UDP Disabled.\n"
-			 */
-			"GetLocalAddress"
-			{
-				"library" "engine"
-				"linux"   "@_Z19NET_GetLocalAddressv"
-			}
-		}
-	}
-	"tf"
-	{
-		"Address"
+		"Addresses"
 		{
 			"net_local_adr"
 			{
@@ -41,14 +19,22 @@
 		}
 		"Signatures"
 		{
+			/*
+			 * String: "Sending voice from: %s - playerslot: %d\n"
+			 */
 			"BroadcastVoiceData"
 			{
 				"library" "engine"
+				"linux"   "@_Z21SV_BroadcastVoiceDataP7IClientiPcx"
 				"windows" "\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x83\xEC\x50\x83\x78\x30\x00\x0F\x84\x2A\x2A\x2A\x2A\x53"
 			}
+			/*
+			 * String: "TCP/UDP Disabled.\n"
+			 */
 			"GetLocalAddress"
 			{
 				"library" "engine"
+				"linux"   "@_Z19NET_GetLocalAddressv"
 				"windows" "\x55\x8B\xEC\x81\xEC\x00\x02\x00\x00\xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\x80\x3D\x2A\x2A\x2A\x2A\x00"
 			}
 		}
