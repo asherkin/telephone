@@ -6,6 +6,8 @@
 #include <libwebsockets.h>
 
 #include <amtl/am-hashset.h>
+#include <amtl/am-inlinelist.h>
+#include <amtl/am-refcounting.h>
 #include <CDetour/detours.h>
 
 #include <string.h>
@@ -40,28 +42,80 @@ struct netadr_t
 	unsigned short port;
 };
 
-struct WebsocketHashPolicy
+struct VoiceBuffer: ke::Refcounted<VoiceBuffer>
 {
-	static uint32_t hash(const lws *const &value) {
-		return (uint32_t)value;
+	VoiceBuffer(void *data, size_t bytes): length(bytes) {
+		this->data = new unsigned char[LWS_SEND_BUFFER_PRE_PADDING + bytes + LWS_SEND_BUFFER_POST_PADDING];
+		memcpy(&this->data[LWS_SEND_BUFFER_PRE_PADDING], data, bytes);
 	}
 
-	static bool matches(const lws *const &value, const lws *const &key) {
+	~VoiceBuffer() {
+		delete[] data;
+	}
+
+	unsigned char *data;
+	size_t length;
+};
+
+struct VoiceBufferNode: ke::Ref<VoiceBuffer>, ke::InlineListNode<VoiceBufferNode>
+{
+	VoiceBufferNode(VoiceBuffer *buffer): ke::Ref<VoiceBuffer>(buffer), ke::InlineListNode<VoiceBufferNode>() {
+		// Do nothing.
+	}
+};
+
+struct Websocket
+{
+	Websocket(lws *wsi): wsi(wsi) {
+		queue = new ke::InlineList<VoiceBufferNode>();
+	}
+
+	~Websocket() {
+		delete queue;
+	}
+
+	// TODO: Once we update to a version of SM with modern AMTL,
+	// this needs to be converted to a move constructor.
+	// (and the copy ctor deletes below can go)
+	Websocket(ke::Moveable<Websocket> other) {
+		wsi = other->wsi;
+		queue = other->queue;
+
+		other->wsi = nullptr;
+		other->queue = nullptr;
+	}
+
+	Websocket(Websocket const &other) = delete;
+	Websocket &operator =(Websocket const &other) = delete;
+
+	lws *wsi;
+	ke::InlineList<VoiceBufferNode> *queue;
+};
+
+struct WebsocketHashPolicy
+{
+	static uint32_t hash(const Websocket &value) {
+		return (uint32_t)value.wsi;
+	}
+
+	static bool matches(const Websocket &value, const Websocket &key) {
 		return (hash(value) == hash(key));
 	}
 };
 
-typedef ke::HashSet<lws *, WebsocketHashPolicy> WebsocketSet;
+typedef ke::HashSet<Websocket, WebsocketHashPolicy> WebsocketSet;
 WebsocketSet websockets;
 
 class IClient;
 
-DETOUR_DECL_MEMBER4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
+DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
 {
 	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
 
+#if 1
 	// Get it to the other in-game players first.
-	DETOUR_MEMBER_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
+	DETOUR_STATIC_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
+#endif
 
 #if 0
 	static int packet = 0;
@@ -72,12 +126,18 @@ DETOUR_DECL_MEMBER4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 	fclose(file);
 #endif
 
-	unsigned char *socketBuffer = (unsigned char *)alloca(LWS_SEND_BUFFER_PRE_PADDING + bytes + LWS_SEND_BUFFER_POST_PADDING);
-	memcpy(&socketBuffer[LWS_SEND_BUFFER_PRE_PADDING], data, bytes);
-
+#if 1
+	VoiceBuffer *buffer = nullptr;
 	for (WebsocketSet::iterator i = websockets.iter(); !i.empty(); i.next()) {
-		lws_write(*i, &socketBuffer[LWS_SEND_BUFFER_PRE_PADDING], bytes, LWS_WRITE_BINARY);
+		if (!buffer) {
+			buffer = new VoiceBuffer(data, bytes);
+		}
+
+		Websocket &socket = *i;
+		socket.queue->append(new VoiceBufferNode(buffer));
+		lws_callback_on_writable(socket.wsi);
 	}
+#endif
 }
 
 int callback_http(lws *wsi, lws_callback_reasons reason, void *user, void *in, size_t len)
@@ -98,7 +158,7 @@ int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, 
 		case LWS_CALLBACK_ESTABLISHED: {
 			DEBUG_LOG(">>> Client connected to voice websocket.");
 			WebsocketSet::Insert insert = websockets.findForAdd(wsi);
-			if (!insert.found()) websockets.add(insert, wsi);
+			if (!insert.found()) websockets.add(insert, ke::Moveable<Websocket>(Websocket(wsi)));
 			break;
 		}
 
@@ -111,6 +171,24 @@ int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, 
 
 		case LWS_CALLBACK_RECEIVE: {
 			DEBUG_LOG(">>> Received message on voice websocket: %s", (char *)in);
+			break;
+		}
+
+		case LWS_CALLBACK_SERVER_WRITEABLE: {
+			DEBUG_LOG(">>> Voice websocket ready for writing.");
+
+			WebsocketSet::Result result = websockets.find(wsi);
+			if (result.found() && !result->queue->empty()) {
+				VoiceBufferNode *bufferNode = *result->queue->begin();
+				VoiceBuffer *buffer = *bufferNode;
+				lws_write(result->wsi, &buffer->data[LWS_SEND_BUFFER_PRE_PADDING], buffer->length, LWS_WRITE_BINARY);
+				result->queue->remove(bufferNode);
+				delete bufferNode;
+
+				if (!result->queue->empty()) {
+					lws_callback_on_writable(result->wsi);
+				}
+			}
 			break;
 		}
 	}
@@ -139,7 +217,7 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	CDetourManager::Init(smutils->GetScriptingEngine(), gameConfig);
 
-	detourBroadcastVoiceData = DETOUR_CREATE_MEMBER(BroadcastVoiceData, "BroadcastVoiceData");
+	detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData, "BroadcastVoiceData");
 	if (!detourBroadcastVoiceData) {
 		gameconfs->CloseGameConfigFile(gameConfig);
 
