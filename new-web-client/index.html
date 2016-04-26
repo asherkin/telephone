@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Telephone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css">
+    <style type="text/css">
+      .page-header { margin-top: 20px; }
+      .list-group-item img { margin-right: 6px; margin-left: -6px; height: 24px; margin-top: -4px; margin-bottom: -2px; border-radius: 3px; }
+      .table > tbody > tr > td:nth-child(1) { padding: 0; vertical-align: middle; min-width: 38px; text-align: center; }
+      .table > tbody > tr > td:nth-child(1) > img { border-radius: 5px; }
+      .table > tbody > tr > th:nth-child(2) { width: 100%; }
+      .table > tbody > tr > td:nth-child(n+4) { text-align: right; }
+    </style>
+  </head>
+  <body>
+    <div id="content"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-bootstrap/0.29.2/react-bootstrap.js"></script>
+    <script type="text/babel">
+      const { Grid, Row, Col, Navbar, ListGroup, ListGroupItem, Label, Panel, Badge, Button, Form, FormGroup, FormControl, InputGroup, Table } = ReactBootstrap;
+
+      var stateManager = null;
+
+      const Icon = (props) =>
+        <i
+          className={'fa fa-'+props.type+(props.spin ? ' fa-spin' : '')+(props.large ? ' fa-lg' : '')}
+          style={{
+            fontSize: (props.size || undefined),
+            verticalAlign: (props.middle ? 'middle' : undefined),
+          }}
+        />;
+
+      const FooterLink = (props) =>
+        <a href={props.href} target="_blank" className="text-muted">{props.children}</a>
+
+      const Layout = (props) =>
+        <div>
+          <Navbar fixedTop>
+            <Navbar.Header>
+              <Navbar.Brand>
+                <a href="#">Telephone</a>
+              </Navbar.Brand>
+            </Navbar.Header>
+            <Navbar.Form pullRight className="hidden-xs">
+              <Button type="button"><Icon type="wrench" /></Button>
+            </Navbar.Form>
+          </Navbar>
+          <Grid style={{ marginTop: 70 }}>
+            <Row>
+              <Col sm={4} md={3}>
+                <div className="page-header h4">
+                  Servers
+                </div>
+                <ListGroup>
+                  <ListGroupItem active><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> One <Badge>12 / 32</Badge></ListGroupItem>
+                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Two <Badge>0 / 32</Badge></ListGroupItem>
+                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Three <Badge>0 / 6</Badge></ListGroupItem>
+                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Four <Badge>0 / 24</Badge></ListGroupItem>
+                  <ListGroupItem bsStyle="danger"><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg" /> Five</ListGroupItem>
+                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Six <Badge>0 / 24</Badge></ListGroupItem>
+                </ListGroup>
+              </Col>
+              <Col sm={8} md={9}>
+                <div className="page-header h4">
+                  One <Label bsStyle="success" className="pull-right">Connected</Label>
+                </div>
+                <Row>
+                  <Col md={12}>
+                    <Panel footer={<InputGroup><FormControl type="text" placeholder="Message..." /><InputGroup.Button><Button type="button">Send</Button></InputGroup.Button></InputGroup>}>
+                      Two
+                    </Panel>
+                  </Col>
+                  <Col md={12}>
+                    <Panel>
+                      <Table fill>
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th></th>
+                            <th>Score</th>
+                            <th>Kills</th>
+                            <th>Deaths</th>
+                            <th>Ping</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/cf/cffc0bae388c3e5798831eeebb31d990d684f5be.jpg" /></td>
+                            <th>asherkin</th>
+                            <td><Icon type="volume-up" large /></td>
+                            <td>80</td>
+                            <td>12</td>
+                            <td>0</td>
+                            <td>34</td>
+                          </tr>
+                          <tr>
+                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <th>psychonic</th>
+                            <td></td>
+                            <td>56</td>
+                            <td>4</td>
+                            <td>2</td>
+                            <td>150</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+                    </Panel>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+            <div className="page-header" />
+            <div className="text-muted text-center text-lowercase" style={{ marginBottom: 20 }}>
+              Made with <Icon type="heart" middle size="50%" /> by <FooterLink href="https://limetech.io">asherkin</FooterLink><br/>
+              <small><FooterLink href="https://github.com/asherkin/telephone">I am Free Software, Fork me on GitHub</FooterLink></small>
+            </div>
+          </Grid>
+        </div>;
+
+      class StateManager extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {};
+        }
+        render() {
+          return <Layout />;
+        }
+      }
+
+      window.stateManager = stateManager = ReactDOM.render(
+        <StateManager />,
+        document.getElementById('content')
+      );
+    </script>
+  </body>
+</html>
