@@ -179,13 +179,17 @@ int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, 
 
 			WebsocketSet::Result result = websockets.find(wsi);
 			if (result.found() && !result->queue->empty()) {
-				VoiceBufferNode *bufferNode = *result->queue->begin();
-				VoiceBuffer *buffer = *bufferNode;
-				lws_write(result->wsi, &buffer->data[LWS_SEND_BUFFER_PRE_PADDING], buffer->length, LWS_WRITE_BINARY);
-				result->queue->remove(bufferNode);
-				delete bufferNode;
+				do {
+					DEBUG_LOG(">>> Send voice data to websocket.");
+					VoiceBufferNode *bufferNode = *result->queue->begin();
+					VoiceBuffer *buffer = *bufferNode;
+					lws_write(result->wsi, &buffer->data[LWS_SEND_BUFFER_PRE_PADDING], buffer->length, LWS_WRITE_BINARY);
+					result->queue->remove(bufferNode);
+					delete bufferNode;
+				} while (lws_partial_buffered(result->wsi) != 1 && !result->queue->empty());
 
 				if (!result->queue->empty()) {
+					DEBUG_LOG(">>> Websocket buffered, waiting for another writable callback.");
 					lws_callback_on_writable(result->wsi);
 				}
 			}
