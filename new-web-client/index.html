@@ -8,8 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css">
     <style type="text/css">
+      body { background-color: #f8f8f8; }
+      .navbar-default { background-color: #fff; }
+      .navbar-default .navbar-brand { color: #333; }
       .page-header { margin-top: 20px; }
-      .list-group-item img { margin-right: 6px; margin-left: -6px; height: 24px; margin-top: -4px; margin-bottom: -2px; border-radius: 3px; }
+      .list-group-item img { margin-right: 9px; margin-left: -6px; height: 24px; margin-top: -4px; margin-bottom: -2px; border-radius: 3px; }
       .table-chat > tbody > tr > td:nth-child(1) { font-family: Menlo, Monaco, Consolas, "Courier New", monospace; }
       .table-chat > tbody > tr > td:nth-child(2) { padding: 3px; }
       .table-chat > tbody > tr > td:nth-child(2) > img { border-radius: 4px; height: 24px; }
@@ -69,12 +72,35 @@
                   Servers
                 </div>
                 <ListGroup>
-                  <ListGroupItem active><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> One <Badge>12 / 32</Badge></ListGroupItem>
-                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Two <Badge>0 / 32</Badge></ListGroupItem>
-                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Three <Badge>0 / 6</Badge></ListGroupItem>
-                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Four <Badge>0 / 24</Badge></ListGroupItem>
-                  <ListGroupItem bsStyle="danger"><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg" /> Five</ListGroupItem>
-                  <ListGroupItem><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" /> Six <Badge>0 / 24</Badge></ListGroupItem>
+                  <ListGroupItem active>
+                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    One
+                    <Badge>12 / 32</Badge>
+                  </ListGroupItem>
+                  <ListGroupItem>
+                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    Two
+                    <Badge>0 / 32</Badge>
+                  </ListGroupItem>
+                  <ListGroupItem>
+                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    Three
+                    <Badge>0 / 6</Badge>
+                  </ListGroupItem>
+                  <ListGroupItem>
+                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    Four
+                    <Badge>0 / 24</Badge>
+                  </ListGroupItem>
+                  <ListGroupItem bsStyle="danger">
+                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg" />
+                    123.123.123.123:9000
+                  </ListGroupItem>
+                  <ListGroupItem>
+                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    Six
+                    <Badge>0 / 24</Badge>
+                  </ListGroupItem>
                 </ListGroup>
               </Col>
               <Col sm={8} md={9}>
