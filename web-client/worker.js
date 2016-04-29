@@ -235,7 +235,7 @@ function disconnect() {
 function connectToServer(address) {
   disconnect();
 
-  websocket = new WebSocket(address, 'voice-chat');
+  websocket = new WebSocket(address, 'telephone');
   websocket.binaryType = 'arraybuffer';
   websocket.onopen = onWebsocketOpen;
   websocket.onerror = onWebsocketError;

@@ -1,0 +1,33 @@
+enum TelephoneEventType {
+  TET_StateUpdate = 0,
+  TET_ChatMessage,
+  TET_VoiceData,
+
+  TET_GameSpecific = 100,
+
+  TET_Custom = 200,
+}
+
+enum TelephoneDataType {
+  TDT_ServerName = 0,    // nul-terminated utf-8
+  TDT_AppId,             // unsigned int
+  TDT_PlayerCount,       // unsigned byte
+  TDT_MaxPlayers,        // unsigned byte
+  TDT_WebSocketEndpoint, // nul-terminated utf-8
+  TDT_PlayerInformation, // unsigned byte count, { unsigned short length, data ... } * count
+  TDT_SteamAccountId,    // unsigned int
+  TDT_PlayerName,        // nul-terminated utf-8
+  TDT_PlayerScore,       // unsigned short
+  TDT_PlayerKills,       // unsigned short
+  TDT_PlayerDeaths,      // unsigned short
+  TDT_PlayerPing,        // unsigned short
+  TDT_Timestamp,         // unsigned int
+  TDT_ChatMessage,       // nul-terminated utf-8
+
+  TDT_GameSpecific = 100,
+
+  // TF2
+  TDT_440_PlayerClass = TDT_GameSpecific,
+
+  TDT_Custom = 200,
+}

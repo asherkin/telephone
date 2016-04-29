@@ -152,7 +152,7 @@ int callback_http(lws *wsi, lws_callback_reasons reason, void *user, void *in, s
 	return 0;
 }
 
-int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, size_t len)
+int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *in, size_t len)
 {
 	switch (reason) {
 		case LWS_CALLBACK_ESTABLISHED: {
@@ -202,7 +202,7 @@ int callback_voice(lws *wsi, lws_callback_reasons reason, void *user, void *in, 
 
 lws_protocols protocols[] = {
 	{ "http-only", callback_http, 0, 0 },
-	{ "voice-chat", callback_voice, 0, 2048 },
+	{ "telephone", callback_telephone, 0, 0 },
 	{ nullptr, nullptr, 0, 0 },
 };
 

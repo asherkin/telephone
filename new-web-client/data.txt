@@ -1,0 +1,27 @@
+Public Server Information - HTTP GET Poll
+* Protocol Version - unsigned byte
+* Name - null-terminated utf-8
+* App ID - unsigned int
+* Player Count - unsigned byte
+* Max Players - unsigned byte
+* WebSocket URL - null-terminated utf-8
+
+Pushed Server Information - Regular WebSocket Broadcast
+* Type - unsigned byte
+* Player Information - Array
+  * Steam ID - unsigned int
+  * Name - null-terminated utf-8
+  * Score - unsigned short
+  * Kills - unsigned short
+  * Deaths - unsigned short
+  * Ping - unsigned short
+
+Server Chat - Event WebSocket Broadcast
+* Type - unsigned byte
+* Timestamp - unsigned int
+* Steam ID - unsigned int
+* Message - null-terminated utf-8
+
+Voice Chat - Event Websocket Broadcast
+* Type - unsigned byte
+* Voice Data - blob

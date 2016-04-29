@@ -17,10 +17,10 @@
       .table-chat > tbody > tr > td:nth-child(2) { padding: 3px; }
       .table-chat > tbody > tr > td:nth-child(2) > img { border-radius: 4px; height: 24px; }
       .table-chat > tbody > tr > th:nth-child(3) { text-align: right; }
-      .table-chat > tbody > tr > td:nth-child(4) { width: 100%; }
+      .table-chat > tbody > tr > td:nth-child(4) { width: 100%; max-width: 0px; overflow-x: hidden; text-overflow: ellipsis; }
       .table-players > tbody > tr > td:nth-child(1) { padding: 3px; }
       .table-players > tbody > tr > td:nth-child(1) > img { border-radius: 4px; height: 24px; }
-      .table-players > tbody > tr > th:nth-child(2) { width: 100%; }
+      .table-players > tbody > tr > th:nth-child(2) { width: 100%; max-width: 0px; overflow-x: hidden; white-space: nowrap; text-overflow: ellipsis; }
       .table-players > tbody > tr > td:nth-child(n+4) { text-align: right; }
       .popover-player .popover-content { font-family: Menlo, Monaco, Consolas, "Courier New", monospace; }
     </style>
@@ -73,31 +73,31 @@
                 </div>
                 <ListGroup>
                   <ListGroupItem active>
-                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    <img src="https://steam-api.limetech.io/app/440/icon.jpg" />
                     One
                     <Badge>12 / 32</Badge>
                   </ListGroupItem>
                   <ListGroupItem>
-                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    <img src="https://steam-api.limetech.io/app/440/icon.jpg" />
                     Two
                     <Badge>0 / 32</Badge>
                   </ListGroupItem>
                   <ListGroupItem>
-                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    <img src="https://steam-api.limetech.io/app/440/icon.jpg" />
                     Three
                     <Badge>0 / 6</Badge>
                   </ListGroupItem>
                   <ListGroupItem>
-                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    <img src="https://steam-api.limetech.io/app/440/icon.jpg" />
                     Four
                     <Badge>0 / 24</Badge>
                   </ListGroupItem>
                   <ListGroupItem bsStyle="danger">
-                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg" />
+                    <img src="https://steam-api.limetech.io/public/default.jpg" />
                     123.123.123.123:9000
                   </ListGroupItem>
                   <ListGroupItem>
-                    <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/440/e3f595a92552da3d664ad00277fad2107345f743.jpg" />
+                    <img src="https://steam-api.limetech.io/app/440/icon.jpg" />
                     Six
                     <Badge>0 / 24</Badge>
                   </ListGroupItem>
@@ -117,61 +117,61 @@
                         <tbody>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/cf/cffc0bae388c3e5798831eeebb31d990d684f5be.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/27553871/icon.jpg" /></td>
                             <th>asherkin</th>
                             <td>!rtd</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/cf/cffc0bae388c3e5798831eeebb31d990d684f5be.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/27553871/icon.jpg" /></td>
                             <th>asherkin</th>
                             <td>Whoa, this server sucks</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>!admin</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
                           <tr>
                             <td>01:23:45</td>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
@@ -197,7 +197,7 @@
                           <tr>
                             <td>
                               <OverlayTrigger trigger="click" rootClose placement="right" overlay={<Popover className="popover-player">[U:0:0000000]</Popover>}>
-                                <img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/cf/cffc0bae388c3e5798831eeebb31d990d684f5be.jpg" />
+                                <img src="https://steam-api.limetech.io/user/27553871/icon.jpg" />
                               </OverlayTrigger>
                             </td>
                             <th>asherkin</th>
@@ -212,7 +212,7 @@
                             <td>34</td>
                           </tr>
                           <tr>
-                            <td><img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/63/63dea65a4e34cc7f47583b3daa94279d168f1785.jpg" /></td>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
                             <td></td>
                             <td>56</td>
