@@ -8,12 +8,90 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css">
     <style type="text/css">
-      body { background-color: #f8f8f8; }
-      .navbar-default { background-color: #fff; }
-      .navbar-default .navbar-brand { color: #333; }
-      .page-header { margin-top: 20px; }
+      body { color: white; background-color: #333; }
+      .text-muted { color: #eee; }
+      a.text-muted { color: #eee; }
+      .navbar-default { background-color: firebrick; border-color: #000; }
+      .navbar-default .navbar-brand, .navbar-default .navbar-brand:hover { color: #fff; }
+      .navbar-default .btn-default { color: #fff; background-color: #333; border-color: #000; }
+      .navbar-default .btn-default:hover { color: #333; background-color: #fff; border-color: #000; }
+      .navbar-default .btn-default.focus, .theme-contrast-inverted .navbar-default .btn-default:focus { color: #333; background-color: #eee; border-color: #000; }
+      .navbar-default .btn-default.active, .theme-contrast-inverted .navbar-default .btn-default:active { color: #333; background-color: #ddd; border-color: #000; }
+      .page-header { border-color: firebrick; }
+      .list-group-item { background-color: #444; border-color: #333; }
+      .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: firebrick; border-color: #333; }
+      .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: firebrick; }
+      .panel { background-color: #444; }
+      .panel-default { border-color: #333; }
+      .panel-default>.panel-heading { color: #fff; background-color: #777; border-color: #333; }
+      .panel-default>.panel-heading .badge { color: #777; background-color: #fff; }
+      .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { border-color: #333; }
+      .modal-content { background-color: #333; }
+      .modal-header { background-color: firebrick; border-color: #000; border-top-left-radius: inherit; border-top-right-radius: inherit; }
+
+      .theme-contrast-inverted .navbar-default .navbar-brand, .theme-contrast-inverted .navbar-default .navbar-brand:hover { color: #333; }
+      .theme-contrast-inverted .list-group-item.active, .theme-contrast-inverted .list-group-item.active:focus, .theme-contrast-inverted .list-group-item.active:hover { color: #333; }
+      .theme-contrast-inverted .list-group-item.active>.badge, .theme-contrast-inverted .nav-pills>.active>a>.badge { background-color: #333; }
+      .theme-contrast-inverted .modal-header { color: #333; }
+
+      .theme-weight-light td { font-weight: lighter; letter-spacing: 1px; }
+      .theme-weight-light th { font-weight: inherit; }
+      .theme-weight-light .page-footer { font-weight: lighter; letter-spacing: 1px; }
+      .theme-weight-light label { font-weight: normal; }
+
+      .theme-weight-lighter { font-weight: lighter; letter-spacing: 1px; }
+      .theme-weight-lighter .h1, .theme-weight-lighter .h2, .theme-weight-lighter .h3, .theme-weight-lighter .h4, .theme-weight-lighter .h5, .theme-weight-lighter .h6, .theme-weight-lighter h1, .theme-weight-lighter h2, .theme-weight-lighter h3, .theme-weight-lighter h4, .theme-weight-lighter h5, .theme-weight-lighter h6 { font-weight: inherit; }
+      .theme-weight-lighter th { font-weight: normal; letter-spacing: 0; }
+      .theme-weight-lighter .badge { letter-spacing: 0; }
+      .theme-weight-lighter label { font-weight: inherit; }
+
+      .theme-color-bootstrap .navbar-default { background-color: #337ab7; }
+      .theme-color-bootstrap .page-header { border-color: #337ab7; }
+      .theme-color-bootstrap .list-group-item.active, .theme-color-bootstrap .list-group-item.active:focus, .theme-color-bootstrap .list-group-item.active:hover { background-color: #337ab7; }
+      .theme-color-bootstrap .list-group-item.active>.badge, .theme-color-bootstrap .nav-pills>.active>a>.badge { color: #337ab7; }
+      .theme-color-bootstrap .modal-header { background-color: #337ab7; }
+
+      .theme-color-grass .navbar-default { background-color: #4caf50; }
+      .theme-color-grass .page-header { border-color: #4caf50; }
+      .theme-color-grass .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #4caf50; }
+      .theme-color-grass .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: #4caf50; }
+      .theme-color-grass .modal-header { background-color: #4caf50; }
+
+      .theme-color-rebecca .navbar-default { background-color: #663399; }
+      .theme-color-rebecca .page-header { border-color: #663399; }
+      .theme-color-rebecca .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #663399; }
+      .theme-color-rebecca .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: #663399; }
+      .theme-color-rebecca .modal-header { background-color: #663399; }
+
+      .theme-color-bee .navbar-default { background-color: #ffeb3b; }
+      .theme-color-bee .page-header { border-color: #ffeb3b; }
+      .theme-color-bee .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #ffeb3b; }
+      .theme-color-bee .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: #ffeb3b; }
+      .theme-color-bee .modal-header { background-color: #ffeb3b; }
+
+      .panel-team-red { border-color: #333; }
+      .panel-team-red>.panel-heading { color: #fff; background-color: #777; border-color: #333; }
+      .panel-team-red>.panel-heading .badge { color: #777; background-color: #fff; }
+      .panel-team-red { border-color: #333; }
+      .panel-team-red>.panel-heading { color: #fff; background-color: #a94442; border-color: #333; }
+      .panel-team-red>.panel-heading .badge { color: #a94442; background-color: #fff; }
+      .panel-team-blue { border-color: #333; }
+      .panel-team-blue>.panel-heading { color: #fff; background-color: #31708f; border-color: #333; }
+      .panel-team-blue>.panel-heading .badge { color: #31708f; background-color: #fff; }
+      .table>tbody>tr.team-grey>td, .table>tbody>tr.team-grey>th, .table>tbody>tr>td.team-grey, .table>tbody>tr>th.team-grey, .table>tfoot>tr.team-grey>td, .table>tfoot>tr.team-grey>th, .table>tfoot>tr>td.team-grey, .table>tfoot>tr>th.team-grey, .table>thead>tr.team-grey>td, .table>thead>tr.team-grey>th, .table>thead>tr>td.team-grey, .table>thead>tr>th.team-grey { background-color: #777; }
+      .table>tbody>tr.team-red>td, .table>tbody>tr.team-red>th, .table>tbody>tr>td.team-red, .table>tbody>tr>th.team-red, .table>tfoot>tr.team-red>td, .table>tfoot>tr.team-red>th, .table>tfoot>tr>td.team-red, .table>tfoot>tr>th.team-red, .table>thead>tr.team-red>td, .table>thead>tr.team-red>th, .table>thead>tr>td.team-red, .table>thead>tr>th.team-red { background-color: #a94442; }
+      .table>tbody>tr.team-blue>td, .table>tbody>tr.team-blue>th, .table>tbody>tr>td.team-blue, .table>tbody>tr>th.team-blue, .table>tfoot>tr.team-blue>td, .table>tfoot>tr.team-blue>th, .table>tfoot>tr>td.team-blue, .table>tfoot>tr>th.team-blue, .table>thead>tr.team-blue>td, .table>thead>tr.team-blue>th, .table>thead>tr>td.team-blue, .table>thead>tr>th.team-blue { background-color: #31708f; }
+
+      .page-header { margin-top: 15px; margin-bottom: 15px }
+      .page-header:empty { padding: 0; }
+      .badge { font-size: inherit; font-weight: inherit; }
+      .list-group-item { text-overflow: ellipsis; overflow-x: hidden; white-space: nowrap; }
       .list-group-item img { margin-right: 9px; margin-left: -6px; height: 24px; margin-top: -4px; margin-bottom: -2px; border-radius: 3px; }
-      .table-chat > tbody > tr > td:nth-child(1) { font-family: Menlo, Monaco, Consolas, "Courier New", monospace; }
+      .navbar-header { float: left; }
+      .navbar-form { width: auto; padding-top: 0; padding-bottom: 0; margin-right: 0; margin-left: 0; border: 0; -webkit-box-shadow: none; box-shadow: none; }
+      .navbar-right { float: right !important; margin-right: -15px; }
+
+      .table-chat > tbody > tr > td:nth-child(1) { padding-left: 7px; }
       .table-chat > tbody > tr > td:nth-child(2) { padding: 3px; }
       .table-chat > tbody > tr > td:nth-child(2) > img { border-radius: 4px; height: 24px; }
       .table-chat > tbody > tr > th:nth-child(3) { text-align: right; }
@@ -22,7 +100,6 @@
       .table-players > tbody > tr > td:nth-child(1) > img { border-radius: 4px; height: 24px; }
       .table-players > tbody > tr > th:nth-child(2) { width: 100%; max-width: 0px; overflow-x: hidden; white-space: nowrap; text-overflow: ellipsis; }
       .table-players > tbody > tr > td:nth-child(n+4) { text-align: right; }
-      .popover-player .popover-content { font-family: Menlo, Monaco, Consolas, "Courier New", monospace; }
     </style>
   </head>
   <body>
@@ -32,9 +109,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-bootstrap/0.29.2/react-bootstrap.js"></script>
     <script type="text/babel">
-      const { Grid, Row, Col, Navbar, ListGroup, ListGroupItem, Label, Panel, Badge, Button, Form, FormGroup, FormControl, InputGroup, Table, OverlayTrigger, Tooltip, Popover } = ReactBootstrap;
+      const { Grid, Row, Col, Navbar, ListGroup, ListGroupItem, Label, Panel, Badge, Button, Form, FormGroup, FormControl, InputGroup, Table, OverlayTrigger, Tooltip, Popover, Modal, ControlLabel, ButtonGroup } = ReactBootstrap;
 
       var stateManager = null;
+
+      ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-grey');
+      ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-red');
+      ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-blue');
 
       const Icon = (props) =>
         <i
@@ -42,6 +123,7 @@
           style={{
             fontSize: (props.size || undefined),
             verticalAlign: (props.middle ? 'middle' : undefined),
+            color: (props.color || undefined),
           }}
         />;
 
@@ -49,22 +131,72 @@
         <a href={props.href} target="_blank" className="text-muted">{props.children}</a>
 
       const Layout = (props) =>
-        <div>
+        <div className={props.theme.class}>
           <Navbar fixedTop>
             <Navbar.Header>
               <Navbar.Brand>
                 <Icon type="phone-square" large /> Telephone
               </Navbar.Brand>
             </Navbar.Header>
-            <Navbar.Form pullRight className="hidden-xs">
+            <Navbar.Form pullRight>
               <OverlayTrigger placement="bottom" overlay={<Tooltip>Load Servers</Tooltip>}>
-                <Button type="button"><Icon type="inbox" large /></Button>
+                <Button><Icon type="inbox" large /></Button>
               </OverlayTrigger>{' '}
               <OverlayTrigger placement="bottom" overlay={<Tooltip>Settings</Tooltip>}>
-                <Button type="button"><Icon type="wrench" large /></Button>
+                <Button onClick={() => stateManager.setState({ settingsOpen: true })}><Icon type="wrench" large /></Button>
               </OverlayTrigger>
             </Navbar.Form>
           </Navbar>
+          <Modal dialogClassName={props.theme.class} show={props.settingsOpen} onHide={() => stateManager.setState({ settingsOpen: false })}>
+            <Modal.Header closeButton>
+              <Modal.Title>Settings</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="form-horizontal">
+                <div className="page-header">
+                  <span className="h4">Theme</span>
+                  <a className="pull-right text-muted" href="#" onClick={(e) => { stateManager.setState({ themeColor: 'firebrick', themeContrast: 'normal', themeWeight: 'light' }); e.preventDefault(); }}>Reset</a>
+                </div>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={2}>Colour</Col>
+                  <Col sm={10}>
+                    <ButtonGroup>
+                      <Button active={props.theme.color === 'firebrick'} onClick={() => stateManager.setState({ themeColor: 'firebrick', themeContrast: 'normal' })}>Firebrick</Button>
+                      <Button active={props.theme.color === 'bootstrap'} onClick={() => stateManager.setState({ themeColor: 'bootstrap', themeContrast: 'normal' })}>Bootstrap</Button>
+                      <Button active={props.theme.color === 'grass'} onClick={() => stateManager.setState({ themeColor: 'grass', themeContrast: 'normal' })}>Grass</Button>
+                      <Button active={props.theme.color === 'bee'} onClick={() => stateManager.setState({ themeColor: 'bee', themeContrast: 'inverted' })}>Bee</Button>
+                      <Button active={props.theme.color === 'rebecca'} onClick={() => stateManager.setState({ themeColor: 'rebecca', themeContrast: 'normal' })}>Rebecca</Button>
+                    </ButtonGroup>
+                  </Col>
+                </FormGroup>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={2}>Contrast</Col>
+                  <Col sm={10}>
+                    <ButtonGroup>
+                      <Button active={props.theme.contrast === 'normal'} onClick={() => stateManager.setState({ themeContrast: 'normal' })}>Normal</Button>
+                      <Button active={props.theme.contrast === 'inverted'} onClick={() => stateManager.setState({ themeContrast: 'inverted' })}>Inverted</Button>
+                    </ButtonGroup>
+                  </Col>
+                </FormGroup>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={2}>Weight</Col>
+                  <Col sm={10}>
+                    <ButtonGroup>
+                      <Button active={props.theme.weight === 'normal'} onClick={() => stateManager.setState({ themeWeight: 'normal' })}>Normal</Button>
+                      <Button active={props.theme.weight === 'light'} onClick={() => stateManager.setState({ themeWeight: 'light' })}>Light</Button>
+                      <Button active={props.theme.weight === 'lighter'} onClick={() => stateManager.setState({ themeWeight: 'lighter' })}>Lighter</Button>
+                    </ButtonGroup>
+                  </Col>
+                </FormGroup>
+                <div className="page-header" />
+                <FormGroup>
+                  <Col smOffset={2} sm={10}>
+                    <Button onClick={() => stateManager.setState({ settingsOpen: false })}>Close</Button>
+                  </Col>
+                </FormGroup>
+              </div>
+            </Modal.Body>
+          </Modal>
           <Grid style={{ marginTop: 70 }}>
             <Row>
               <Col sm={4} md={3}>
@@ -92,7 +224,7 @@
                     Four
                     <Badge>0 / 24</Badge>
                   </ListGroupItem>
-                  <ListGroupItem bsStyle="danger">
+                  <ListGroupItem>
                     <img src="https://steam-api.limetech.io/public/default.jpg" />
                     123.123.123.123:9000
                   </ListGroupItem>
@@ -107,7 +239,7 @@
                 <div className="page-header h4">
                   One
                   <OverlayTrigger placement="left" overlay={<Tooltip>Connected</Tooltip>}>
-                    <Label bsStyle="success" className="pull-right"><Icon type="plug" /></Label>
+                    <span className="pull-right"><Icon type="plug" /></span>
                   </OverlayTrigger>
                 </div>
                 <Row>
@@ -127,7 +259,7 @@
                             <th>asherkin</th>
                             <td>Whoa, this server sucks</td>
                           </tr>
-                          <tr>
+                          <tr className="team-blue">
                             <td>01:23:45</td>
                             <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
@@ -145,7 +277,7 @@
                             <th>psychonic</th>
                             <td>cyka!</td>
                           </tr>
-                          <tr>
+                          <tr className="team-red">
                             <td>01:23:45</td>
                             <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
                             <th>psychonic</th>
@@ -179,8 +311,8 @@
                       </Table>
                     </Panel>
                   </Col>
-                  <Col md={12}>
-                    <Panel>
+                  <Col md={6}>
+                    <Panel header={<div>BLU <Badge className="pull-right">3</Badge></div>} bsStyle="team-blue">
                       <Table fill condensed className="table-players">
                         <thead>
                           <tr>
@@ -188,27 +320,15 @@
                             <th>Name</th>
                             <th></th>
                             <th>Score</th>
-                            <th>Kills</th>
-                            <th>Deaths</th>
                             <th>Ping</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr>
-                            <td>
-                              <OverlayTrigger trigger="click" rootClose placement="right" overlay={<Popover className="popover-player">[U:0:0000000]</Popover>}>
-                                <img src="https://steam-api.limetech.io/user/27553871/icon.jpg" />
-                              </OverlayTrigger>
-                            </td>
+                            <td><img src="https://steam-api.limetech.io/user/27553871/icon.jpg" /></td>
                             <th>asherkin</th>
-                            <td>
-                              <OverlayTrigger placement="left" overlay={<Tooltip>Talking</Tooltip>}>
-                                <div><Icon type="volume-up" large /></div>
-                              </OverlayTrigger>
-                            </td>
+                            <td><Icon type="volume-up" large /></td>
                             <td>80</td>
-                            <td>12</td>
-                            <td>0</td>
                             <td>34</td>
                           </tr>
                           <tr>
@@ -216,8 +336,37 @@
                             <th>psychonic</th>
                             <td></td>
                             <td>56</td>
-                            <td>4</td>
-                            <td>2</td>
+                            <td>150</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+                    </Panel>
+                  </Col>
+                  <Col md={6}>
+                    <Panel header={<div>RED <Badge className="pull-right">5</Badge></div>} bsStyle="team-red">
+                      <Table fill condensed className="table-players">
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th></th>
+                            <th>Score</th>
+                            <th>Ping</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><img src="https://steam-api.limetech.io/user/27553871/icon.jpg" /></td>
+                            <th>asherkin</th>
+                            <td><Icon type="volume-up" large /></td>
+                            <td>80</td>
+                            <td>34</td>
+                          </tr>
+                          <tr>
+                            <td><img src="https://steam-api.limetech.io/user/8307981/icon.jpg" /></td>
+                            <th>psychonic</th>
+                            <td></td>
+                            <td>56</td>
                             <td>150</td>
                           </tr>
                         </tbody>
@@ -228,8 +377,8 @@
               </Col>
             </Row>
             <div className="page-header" />
-            <div className="text-muted text-center text-lowercase" style={{ marginBottom: 20 }}>
-              Made with <Icon type="heart" middle size="50%" /> by <FooterLink href="https://limetech.io">asherkin</FooterLink><br/>
+            <div className="page-footer text-muted text-center text-lowercase" style={{ marginBottom: 20 }}>
+              Made with <Icon type="heart" middle size="80%" color="firebrick" /> by <FooterLink href="https://limetech.io">asherkin</FooterLink><br/>
               <small><FooterLink href="https://github.com/asherkin/telephone">I am Free Software, Fork me on GitHub</FooterLink></small>
             </div>
           </Grid>
@@ -238,10 +387,35 @@
       class StateManager extends React.Component {
         constructor(props) {
           super(props);
-          this.state = {};
+
+          this.state = {
+            settingsOpen: false,
+            themeColor: 'firebrick',
+            themeContrast: 'normal',
+            themeWeight: 'light',
+          };
+
+          if (localStorage.state) {
+            Object.assign(this.state, JSON.parse(localStorage.state));
+          }
+        }
+        componentDidUpdate() {
+          localStorage.state = JSON.stringify([
+            'themeColor', 'themeContrast', 'themeWeight',
+          ].reduce((o, k) => { o[k] = this.state[k]; return o; }, {}));
         }
         render() {
-          return <Layout />;
+          var theme = {
+            class: '',
+            color: this.state.themeColor,
+            contrast: this.state.themeContrast,
+            weight: this.state.themeWeight,
+          };
+          theme.class += 'theme-color-' + theme.color;
+          theme.class += ' theme-contrast-' + theme.contrast;
+          theme.class += ' theme-weight-' + theme.weight;
+
+          return <Layout theme={theme} settingsOpen={this.state.settingsOpen} />;
         }
       }
 
