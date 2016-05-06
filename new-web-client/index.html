@@ -8,26 +8,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css">
     <style type="text/css">
-      body { color: white; background-color: #333; }
-      .text-muted { color: #eee; }
-      a.text-muted { color: #eee; }
-      .navbar-default { background-color: firebrick; border-color: #000; }
-      .navbar-default .navbar-brand, .navbar-default .navbar-brand:hover { color: #fff; }
-      .navbar-default .btn-default { color: #fff; background-color: #333; border-color: #000; }
-      .navbar-default .btn-default:hover { color: #333; background-color: #fff; border-color: #000; }
-      .navbar-default .btn-default.focus, .theme-contrast-inverted .navbar-default .btn-default:focus { color: #333; background-color: #eee; border-color: #000; }
-      .navbar-default .btn-default.active, .theme-contrast-inverted .navbar-default .btn-default:active { color: #333; background-color: #ddd; border-color: #000; }
-      .page-header { border-color: firebrick; }
-      .list-group-item { background-color: #444; border-color: #333; }
-      .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: firebrick; border-color: #333; }
-      .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: firebrick; }
-      .panel { background-color: #444; }
-      .panel-default { border-color: #333; }
-      .panel-default>.panel-heading { color: #fff; background-color: #777; border-color: #333; }
-      .panel-default>.panel-heading .badge { color: #777; background-color: #fff; }
-      .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { border-color: #333; }
-      .modal-content { background-color: #333; }
-      .modal-header { background-color: firebrick; border-color: #000; border-top-left-radius: inherit; border-top-right-radius: inherit; }
+      .theme-brightness-dark { color: #fff; background-color: #333; }
+      .theme-brightness-dark .navbar-default { border-color: #000; }
+      .theme-brightness-dark .navbar-default .btn-default { color: #fff; background-color: #333; border-color: #000; }
+      .theme-brightness-dark .navbar-default .btn-default:hover { color: #333; background-color: #fff; border-color: #000; }
+      .theme-brightness-dark .navbar-default .btn-default.focus, .theme-brightness-dark .navbar-default .btn-default:focus { color: #333; background-color: #eee; border-color: #000; }
+      .theme-brightness-dark .navbar-default .btn-default.active, .theme-brightness-dark .navbar-default .btn-default:active { color: #333; background-color: #ddd; border-color: #000; }
+      .theme-brightness-dark .text-muted { color: #eee; }
+      .theme-brightness-dark a.text-muted { color: #eee; }
+      .theme-brightness-dark .list-group-item { background-color: #444; border-color: #333; }
+      .theme-brightness-dark .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { border-color: #333 !important; }
+      .theme-brightness-dark .panel { background-color: #444; }
+      .theme-brightness-dark .panel-default { border-color: #333; }
+      .theme-brightness-dark .modal-content { background-color: #333; }
+      .theme-brightness-dark .help-block { color: #b3b3b3; }
+      .theme-brightness-dark .table>tbody>tr>td, .theme-brightness-dark .table>tbody>tr>th, .theme-brightness-dark .table>tfoot>tr>td, .theme-brightness-dark .table>tfoot>tr>th, .theme-brightness-dark .table>thead>tr>td, .theme-brightness-dark .table>thead>tr>th { border-color: #333; }
+      .theme-brightness-dark .modal-header { border-color: #000; }
+      .theme-brightness-dark .panel-default>.panel-heading { color: #fff; background-color: #777; border-color: #333; }
+      .theme-brightness-dark .panel-default>.panel-heading .badge { color: #777; background-color: #fff; }
+
+      .theme-contrast-normal .navbar-default .navbar-brand, .navbar-default .navbar-brand:hover { color: #fff; }
+      .theme-contrast-normal .modal-header { color: #fff; }
 
       .theme-contrast-inverted .navbar-default .navbar-brand, .theme-contrast-inverted .navbar-default .navbar-brand:hover { color: #333; }
       .theme-contrast-inverted .list-group-item.active, .theme-contrast-inverted .list-group-item.active:focus, .theme-contrast-inverted .list-group-item.active:hover { color: #333; }
@@ -45,42 +46,61 @@
       .theme-weight-lighter .badge { letter-spacing: 0; }
       .theme-weight-lighter label { font-weight: inherit; }
 
+      .theme-color-firebrick .navbar-default { background-color: firebrick; }
+      .theme-color-firebrick .page-header { border-color: firebrick; }
+      .theme-color-firebrick .list-group-item.active, .theme-color-firebrick .list-group-item.active:focus, .theme-color-firebrick .list-group-item.active:hover { background-color: firebrick; border-color: firebrick; }
+      .theme-color-firebrick .list-group-item.active>.badge, .theme-color-firebrick .nav-pills>.active>a>.badge { color: firebrick; }
+      .theme-color-firebrick .modal-header { background-color: firebrick; }
+
       .theme-color-bootstrap .navbar-default { background-color: #337ab7; }
       .theme-color-bootstrap .page-header { border-color: #337ab7; }
-      .theme-color-bootstrap .list-group-item.active, .theme-color-bootstrap .list-group-item.active:focus, .theme-color-bootstrap .list-group-item.active:hover { background-color: #337ab7; }
+      .theme-color-bootstrap .list-group-item.active, .theme-color-bootstrap .list-group-item.active:focus, .theme-color-bootstrap .list-group-item.active:hover { background-color: #337ab7; border-color: #337ab7; }
       .theme-color-bootstrap .list-group-item.active>.badge, .theme-color-bootstrap .nav-pills>.active>a>.badge { color: #337ab7; }
       .theme-color-bootstrap .modal-header { background-color: #337ab7; }
 
       .theme-color-grass .navbar-default { background-color: #4caf50; }
       .theme-color-grass .page-header { border-color: #4caf50; }
-      .theme-color-grass .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #4caf50; }
-      .theme-color-grass .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: #4caf50; }
+      .theme-color-grass .list-group-item.active, .theme-color-grass .list-group-item.active:focus, .theme-color-grass .list-group-item.active:hover { background-color: #4caf50; border-color: #4caf50; }
+      .theme-color-grass .list-group-item.active>.badge, .theme-color-grass .nav-pills>.active>a>.badge { color: #4caf50; }
       .theme-color-grass .modal-header { background-color: #4caf50; }
 
       .theme-color-rebecca .navbar-default { background-color: #663399; }
       .theme-color-rebecca .page-header { border-color: #663399; }
-      .theme-color-rebecca .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #663399; }
-      .theme-color-rebecca .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: #663399; }
+      .theme-color-rebecca .list-group-item.active, .theme-color-rebecca .list-group-item.active:focus, .theme-color-rebecca .list-group-item.active:hover { background-color: #663399; border-color: #663399; }
+      .theme-color-rebecca .list-group-item.active>.badge, .theme-color-rebecca .nav-pills>.active>a>.badge { color: #663399; }
       .theme-color-rebecca .modal-header { background-color: #663399; }
 
       .theme-color-bee .navbar-default { background-color: #ffeb3b; }
       .theme-color-bee .page-header { border-color: #ffeb3b; }
-      .theme-color-bee .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #ffeb3b; }
-      .theme-color-bee .list-group-item.active>.badge, .nav-pills>.active>a>.badge { color: #ffeb3b; }
+      .theme-color-bee .list-group-item.active, .theme-color-bee .list-group-item.active:focus, .theme-color-bee .list-group-item.active:hover { background-color: #ffeb3b; border-color: #ffeb3b; }
+      .theme-color-bee .list-group-item.active>.badge, .theme-color-bee .nav-pills>.active>a>.badge { color: #ffeb3b; }
       .theme-color-bee .modal-header { background-color: #ffeb3b; }
 
-      .panel-team-red { border-color: #333; }
-      .panel-team-red>.panel-heading { color: #fff; background-color: #777; border-color: #333; }
-      .panel-team-red>.panel-heading .badge { color: #777; background-color: #fff; }
-      .panel-team-red { border-color: #333; }
-      .panel-team-red>.panel-heading { color: #fff; background-color: #a94442; border-color: #333; }
-      .panel-team-red>.panel-heading .badge { color: #a94442; background-color: #fff; }
-      .panel-team-blue { border-color: #333; }
-      .panel-team-blue>.panel-heading { color: #fff; background-color: #31708f; border-color: #333; }
-      .panel-team-blue>.panel-heading .badge { color: #31708f; background-color: #fff; }
-      .table>tbody>tr.team-grey>td, .table>tbody>tr.team-grey>th, .table>tbody>tr>td.team-grey, .table>tbody>tr>th.team-grey, .table>tfoot>tr.team-grey>td, .table>tfoot>tr.team-grey>th, .table>tfoot>tr>td.team-grey, .table>tfoot>tr>th.team-grey, .table>thead>tr.team-grey>td, .table>thead>tr.team-grey>th, .table>thead>tr>td.team-grey, .table>thead>tr>th.team-grey { background-color: #777; }
-      .table>tbody>tr.team-red>td, .table>tbody>tr.team-red>th, .table>tbody>tr>td.team-red, .table>tbody>tr>th.team-red, .table>tfoot>tr.team-red>td, .table>tfoot>tr.team-red>th, .table>tfoot>tr>td.team-red, .table>tfoot>tr>th.team-red, .table>thead>tr.team-red>td, .table>thead>tr.team-red>th, .table>thead>tr>td.team-red, .table>thead>tr>th.team-red { background-color: #a94442; }
-      .table>tbody>tr.team-blue>td, .table>tbody>tr.team-blue>th, .table>tbody>tr>td.team-blue, .table>tbody>tr>th.team-blue, .table>tfoot>tr.team-blue>td, .table>tfoot>tr.team-blue>th, .table>tfoot>tr>td.team-blue, .table>tfoot>tr>th.team-blue, .table>thead>tr.team-blue>td, .table>thead>tr.team-blue>th, .table>thead>tr>td.team-blue, .table>thead>tr>th.team-blue { background-color: #31708f; }
+      .panel-team-gray { border-color: #ddd; }
+      .panel-team-gray>.panel-heading { color: #333; background-color: #f5f5f5; border-color: #ddd; }
+      .panel-team-gray>.panel-heading .badge { color: #f5f5f5; background-color: #333; }
+      .panel-team-red { border-color: #ddd; }
+      .panel-team-red>.panel-heading { color: #333; background-color: #f2dede; border-color: #ddd; }
+      .panel-team-red>.panel-heading .badge { color: #f2dede; background-color: #333; }
+      .panel-team-blue { border-color: #ddd; }
+      .panel-team-blue>.panel-heading { color: #333; background-color: #d9edf7; border-color: #ddd; }
+      .panel-team-blue>.panel-heading .badge { color: #d9edf7; background-color: #333; }
+      .table>tbody>tr.team-gray>td, .table>tbody>tr.team-gray>th, .table>tbody>tr>td.team-gray, .table>tbody>tr>th.team-gray, .table>tfoot>tr.team-gray>td, .table>tfoot>tr.team-gray>th, .table>tfoot>tr>td.team-gray, .table>tfoot>tr>th.team-gray, .table>thead>tr.team-gray>td, .table>thead>tr.team-gray>th, .table>thead>tr>td.team-gray, .table>thead>tr>th.team-gray { background-color: #f5f5f5; }
+      .table>tbody>tr.team-red>td, .table>tbody>tr.team-red>th, .table>tbody>tr>td.team-red, .table>tbody>tr>th.team-red, .table>tfoot>tr.team-red>td, .table>tfoot>tr.team-red>th, .table>tfoot>tr>td.team-red, .table>tfoot>tr>th.team-red, .table>thead>tr.team-red>td, .table>thead>tr.team-red>th, .table>thead>tr>td.team-red, .table>thead>tr>th.team-red { background-color: #f2dede; }
+      .table>tbody>tr.team-blue>td, .table>tbody>tr.team-blue>th, .table>tbody>tr>td.team-blue, .table>tbody>tr>th.team-blue, .table>tfoot>tr.team-blue>td, .table>tfoot>tr.team-blue>th, .table>tfoot>tr>td.team-blue, .table>tfoot>tr>th.team-blue, .table>thead>tr.team-blue>td, .table>thead>tr.team-blue>th, .table>thead>tr>td.team-blue, .table>thead>tr>th.team-blue { background-color: #d9edf7; }
+
+      .theme-brightness-dark .panel-team-gray { border-color: #333; }
+      .theme-brightness-dark .panel-team-gray>.panel-heading { color: #fff; background-color: #777; border-color: #333; }
+      .theme-brightness-dark .panel-team-gray>.panel-heading .badge { color: #777; background-color: #fff; }
+      .theme-brightness-dark .panel-team-red { border-color: #333; }
+      .theme-brightness-dark .panel-team-red>.panel-heading { color: #fff; background-color: #a94442; border-color: #333; }
+      .theme-brightness-dark .panel-team-red>.panel-heading .badge { color: #a94442; background-color: #fff; }
+      .theme-brightness-dark .panel-team-blue { border-color: #333; }
+      .theme-brightness-dark .panel-team-blue>.panel-heading { color: #fff; background-color: #31708f; border-color: #333; }
+      .theme-brightness-dark .panel-team-blue>.panel-heading .badge { color: #31708f; background-color: #fff; }
+      .theme-brightness-dark .table>tbody>tr.team-gray>td, .theme-brightness-dark .table>tbody>tr.team-gray>th, .theme-brightness-dark .table>tbody>tr>td.team-gray, .theme-brightness-dark .table>tbody>tr>th.team-gray, .theme-brightness-dark .table>tfoot>tr.team-gray>td, .theme-brightness-dark .table>tfoot>tr.team-gray>th, .theme-brightness-dark .table>tfoot>tr>td.team-gray, .theme-brightness-dark .table>tfoot>tr>th.team-gray, .theme-brightness-dark .table>thead>tr.team-gray>td, .theme-brightness-dark .table>thead>tr.team-gray>th, .theme-brightness-dark .table>thead>tr>td.team-gray, .theme-brightness-dark .table>thead>tr>th.team-gray { background-color: #777; }
+      .theme-brightness-dark .table>tbody>tr.team-red>td, .theme-brightness-dark .table>tbody>tr.team-red>th, .theme-brightness-dark .table>tbody>tr>td.team-red, .theme-brightness-dark .table>tbody>tr>th.team-red, .theme-brightness-dark .table>tfoot>tr.team-red>td, .theme-brightness-dark .table>tfoot>tr.team-red>th, .theme-brightness-dark .table>tfoot>tr>td.team-red, .theme-brightness-dark .table>tfoot>tr>th.team-red, .theme-brightness-dark .table>thead>tr.team-red>td, .theme-brightness-dark .table>thead>tr.team-red>th, .theme-brightness-dark .table>thead>tr>td.team-red, .theme-brightness-dark .table>thead>tr>th.team-red { background-color: #a94442; }
+      .theme-brightness-dark .table>tbody>tr.team-blue>td, .theme-brightness-dark .table>tbody>tr.team-blue>th, .theme-brightness-dark .table>tbody>tr>td.team-blue, .theme-brightness-dark .table>tbody>tr>th.team-blue, .theme-brightness-dark .table>tfoot>tr.team-blue>td, .theme-brightness-dark .table>tfoot>tr.team-blue>th, .theme-brightness-dark .table>tfoot>tr>td.team-blue, .theme-brightness-dark .table>tfoot>tr>th.team-blue, .theme-brightness-dark .table>thead>tr.team-blue>td, .theme-brightness-dark .table>thead>tr.team-blue>th, .theme-brightness-dark .table>thead>tr>td.team-blue, .theme-brightness-dark .table>thead>tr>th.team-blue { background-color: #31708f; }
 
       .page-header { margin-top: 15px; margin-bottom: 15px }
       .page-header:empty { padding: 0; }
@@ -90,6 +110,9 @@
       .navbar-header { float: left; }
       .navbar-form { width: auto; padding-top: 0; padding-bottom: 0; margin-right: 0; margin-left: 0; border: 0; -webkit-box-shadow: none; box-shadow: none; }
       .navbar-right { float: right !important; margin-right: -15px; }
+      .modal-header { border-top-left-radius: 5px; border-top-right-radius: 5px; }
+      .help-block { margin-bottom: 0; }
+      .panel-heading { border-bottom-width: 2px; }
 
       .table-chat > tbody > tr > td:nth-child(1) { padding-left: 7px; }
       .table-chat > tbody > tr > td:nth-child(2) { padding: 3px; }
@@ -102,24 +125,24 @@
       .table-players > tbody > tr > td:nth-child(n+4) { text-align: right; }
     </style>
   </head>
-  <body>
+  <body class="theme-brightness-dark">
     <div id="content"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-bootstrap/0.29.2/react-bootstrap.js"></script>
     <script type="text/babel">
-      const { Grid, Row, Col, Navbar, ListGroup, ListGroupItem, Label, Panel, Badge, Button, Form, FormGroup, FormControl, InputGroup, Table, OverlayTrigger, Tooltip, Popover, Modal, ControlLabel, ButtonGroup } = ReactBootstrap;
+      const { Grid, Row, Col, Navbar, ListGroup, ListGroupItem, Label, Panel, Badge, Button, Form, FormGroup, FormControl, InputGroup, Table, OverlayTrigger, Tooltip, Popover, Modal, ControlLabel, ButtonGroup, HelpBlock } = ReactBootstrap;
 
       var stateManager = null;
 
-      ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-grey');
+      ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-gray');
       ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-red');
       ReactBootstrap.utils.bootstrapUtils.addStyle(Panel, 'team-blue');
 
       const Icon = (props) =>
         <i
-          className={'fa fa-'+props.type+(props.spin ? ' fa-spin' : '')+(props.large ? ' fa-lg' : '')}
+          className={'fa fa-'+props.type+(props.spin ? ' fa-spin' : '')+(props.large ? ' fa-lg' : '')+(props.fixedWidth ? ' fa-fw' : '')}
           style={{
             fontSize: (props.size || undefined),
             verticalAlign: (props.middle ? 'middle' : undefined),
@@ -131,7 +154,7 @@
         <a href={props.href} target="_blank" className="text-muted">{props.children}</a>
 
       const Layout = (props) =>
-        <div className={props.theme.class}>
+        <div>
           <Navbar fixedTop>
             <Navbar.Header>
               <Navbar.Brand>
@@ -147,7 +170,7 @@
               </OverlayTrigger>
             </Navbar.Form>
           </Navbar>
-          <Modal dialogClassName={props.theme.class} show={props.settingsOpen} onHide={() => stateManager.setState({ settingsOpen: false })}>
+          <Modal show={props.settingsOpen} onHide={() => stateManager.setState({ settingsOpen: false })}>
             <Modal.Header closeButton>
               <Modal.Title>Settings</Modal.Title>
             </Modal.Header>
@@ -155,37 +178,60 @@
               <div className="form-horizontal">
                 <div className="page-header">
                   <span className="h4">Theme</span>
-                  <a className="pull-right text-muted" href="#" onClick={(e) => { stateManager.setState({ themeColor: 'firebrick', themeContrast: 'normal', themeWeight: 'light' }); e.preventDefault(); }}>Reset</a>
+                  <a className="pull-right text-muted" href="#" onClick={(e) => { stateManager.setState({ themeBrightness: 'dark', themeColor: 'firebrick', themeContrast: 'normal', themeWeight: 'light' }); e.preventDefault(); }}>Reset</a>
                 </div>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={2}>Brightness</Col>
+                  <Col sm={10}>
+                    <ButtonGroup>
+                      <Button active={props.settings.theme.brightness === 'light'} onClick={() => stateManager.setState({ themeBrightness: 'light', themeWeight: 'normal' })}>Light</Button>
+                      <Button active={props.settings.theme.brightness === 'dark'} onClick={() => stateManager.setState({ themeBrightness: 'dark', themeWeight: 'light' })}>Dark</Button>
+                    </ButtonGroup>
+                    <HelpBlock>Your eyes will thank you.</HelpBlock>
+                  </Col>
+                </FormGroup>
                 <FormGroup>
                   <Col componentClass={ControlLabel} sm={2}>Colour</Col>
                   <Col sm={10}>
                     <ButtonGroup>
-                      <Button active={props.theme.color === 'firebrick'} onClick={() => stateManager.setState({ themeColor: 'firebrick', themeContrast: 'normal' })}>Firebrick</Button>
-                      <Button active={props.theme.color === 'bootstrap'} onClick={() => stateManager.setState({ themeColor: 'bootstrap', themeContrast: 'normal' })}>Bootstrap</Button>
-                      <Button active={props.theme.color === 'grass'} onClick={() => stateManager.setState({ themeColor: 'grass', themeContrast: 'normal' })}>Grass</Button>
-                      <Button active={props.theme.color === 'bee'} onClick={() => stateManager.setState({ themeColor: 'bee', themeContrast: 'inverted' })}>Bee</Button>
-                      <Button active={props.theme.color === 'rebecca'} onClick={() => stateManager.setState({ themeColor: 'rebecca', themeContrast: 'normal' })}>Rebecca</Button>
+                      <Button active={props.settings.theme.color === 'firebrick'} onClick={() => stateManager.setState({ themeColor: 'firebrick', themeContrast: 'normal' })}>Firebrick</Button>
+                      <Button active={props.settings.theme.color === 'bootstrap'} onClick={() => stateManager.setState({ themeColor: 'bootstrap', themeContrast: 'normal' })}>Bootstrap</Button>
+                      <Button active={props.settings.theme.color === 'grass'} onClick={() => stateManager.setState({ themeColor: 'grass', themeContrast: 'normal' })}>Grass</Button>
+                      <Button active={props.settings.theme.color === 'bee'} onClick={() => stateManager.setState({ themeColor: 'bee', themeContrast: 'inverted' })}>Bee</Button>
+                      <Button active={props.settings.theme.color === 'rebecca'} onClick={() => stateManager.setState({ themeColor: 'rebecca', themeContrast: 'normal' })}>Rebecca</Button>
                     </ButtonGroup>
+                    <HelpBlock>Pick your favourite.</HelpBlock>
                   </Col>
                 </FormGroup>
                 <FormGroup>
                   <Col componentClass={ControlLabel} sm={2}>Contrast</Col>
                   <Col sm={10}>
                     <ButtonGroup>
-                      <Button active={props.theme.contrast === 'normal'} onClick={() => stateManager.setState({ themeContrast: 'normal' })}>Normal</Button>
-                      <Button active={props.theme.contrast === 'inverted'} onClick={() => stateManager.setState({ themeContrast: 'inverted' })}>Inverted</Button>
+                      <Button active={props.settings.theme.contrast === 'normal'} onClick={() => stateManager.setState({ themeContrast: 'normal' })}>Normal</Button>
+                      <Button active={props.settings.theme.contrast === 'inverted'} onClick={() => stateManager.setState({ themeContrast: 'inverted' })}>Inverted</Button>
                     </ButtonGroup>
+                    <HelpBlock>Based on colour, but maybe you're special?</HelpBlock>
                   </Col>
                 </FormGroup>
                 <FormGroup>
                   <Col componentClass={ControlLabel} sm={2}>Weight</Col>
                   <Col sm={10}>
                     <ButtonGroup>
-                      <Button active={props.theme.weight === 'normal'} onClick={() => stateManager.setState({ themeWeight: 'normal' })}>Normal</Button>
-                      <Button active={props.theme.weight === 'light'} onClick={() => stateManager.setState({ themeWeight: 'light' })}>Light</Button>
-                      <Button active={props.theme.weight === 'lighter'} onClick={() => stateManager.setState({ themeWeight: 'lighter' })}>Lighter</Button>
+                      <Button active={props.settings.theme.weight === 'normal'} onClick={() => stateManager.setState({ themeWeight: 'normal' })}>Normal</Button>
+                      <Button active={props.settings.theme.weight === 'light'} onClick={() => stateManager.setState({ themeWeight: 'light' })}>Light</Button>
+                      <Button active={props.settings.theme.weight === 'lighter'} onClick={() => stateManager.setState({ themeWeight: 'lighter' })}>Lighter</Button>
                     </ButtonGroup>
+                    <HelpBlock>Your browser probably can't render these properly.</HelpBlock>
+                  </Col>
+                </FormGroup><div className="page-header">
+                  <span className="h4">Performance</span>
+                  <a className="pull-right text-muted" href="#" onClick={(e) => { stateManager.setState({ pollInterval: 10 }); e.preventDefault(); }}>Reset</a>
+                </div>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={2}>Interval</Col>
+                  <Col sm={10}>
+                    <FormControl type="number" min="1" value={props.settings.pollInterval} onChange={(e) => stateManager.setState({ pollInterval: +e.target.value })} style={{ display: 'inline-block', width: 'initial' }} /> seconds
+                    <HelpBlock>How often to poll all servers for game information and player count.</HelpBlock>
                   </Col>
                 </FormGroup>
                 <div className="page-header" />
@@ -390,32 +436,50 @@
 
           this.state = {
             settingsOpen: false,
+            themeBrightness: 'dark',
             themeColor: 'firebrick',
             themeContrast: 'normal',
             themeWeight: 'light',
+            pollInterval: 10,
           };
 
           if (localStorage.state) {
             Object.assign(this.state, JSON.parse(localStorage.state));
           }
         }
-        componentDidUpdate() {
+        settingsUpdated() {
           localStorage.state = JSON.stringify([
-            'themeColor', 'themeContrast', 'themeWeight',
+            'themeBrightness', 'themeColor', 'themeContrast', 'themeWeight', 'pollInterval',
           ].reduce((o, k) => { o[k] = this.state[k]; return o; }, {}));
+
+          var themeClass = '';
+          themeClass += 'theme-brightness-' + this.state.themeBrightness;
+          themeClass += ' theme-color-' + this.state.themeColor;
+          themeClass += ' theme-contrast-' + this.state.themeContrast;
+          themeClass += ' theme-weight-' + this.state.themeWeight;
+
+          document.body.className = themeClass;
+        }
+        componentDidMount() {
+          this.settingsUpdated();
+        }
+        componentDidUpdate(prevProps, prevState) {
+          this.settingsUpdated();
         }
         render() {
           var theme = {
-            class: '',
+            brightness: this.state.themeBrightness,
             color: this.state.themeColor,
             contrast: this.state.themeContrast,
             weight: this.state.themeWeight,
           };
-          theme.class += 'theme-color-' + theme.color;
-          theme.class += ' theme-contrast-' + theme.contrast;
-          theme.class += ' theme-weight-' + theme.weight;
 
-          return <Layout theme={theme} settingsOpen={this.state.settingsOpen} />;
+          var settings = {
+            theme: theme,
+            pollInterval: this.state.pollInterval,
+          }
+
+          return <Layout settings={settings} settingsOpen={this.state.settingsOpen} />;
         }
       }
 
