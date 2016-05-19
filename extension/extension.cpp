@@ -66,8 +66,12 @@ struct VoiceBufferNode: ke::Ref<VoiceBuffer>, ke::InlineListNode<VoiceBufferNode
 
 struct Websocket
 {
-	Websocket(lws *wsi): wsi(wsi) {
-		queue = new ke::InlineList<VoiceBufferNode>();
+	// For real use, set everything later with init() due to moveable issues.
+	Websocket(): wsi(nullptr), queue(nullptr) {
+	}
+
+	// Used for hashing only.
+	Websocket(lws *wsi): wsi(wsi), queue(nullptr) {
 	}
 
 	~Websocket() {
@@ -87,6 +91,11 @@ struct Websocket
 
 	Websocket(Websocket const &other) = delete;
 	Websocket &operator =(Websocket const &other) = delete;
+
+	void init(lws *wsi) {
+		this->wsi = wsi;
+		queue = new ke::InlineList<VoiceBufferNode>();
+	}
 
 	lws *wsi;
 	ke::InlineList<VoiceBufferNode> *queue;
@@ -157,20 +166,34 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 	switch (reason) {
 		case LWS_CALLBACK_ESTABLISHED: {
 			DEBUG_LOG(">>> Client connected to voice websocket.");
+
 			WebsocketSet::Insert insert = websockets.findForAdd(wsi);
-			if (!insert.found()) websockets.add(insert, ke::Moveable<Websocket>(Websocket(wsi)));
+			if (!insert.found()) {
+				if (!websockets.add(insert)) {
+					smutils->LogError(myself, "Failed to add voice websocket to active set.");
+					break;
+				}
+
+				insert->init(wsi);
+			}
+
 			break;
 		}
 
 		case LWS_CALLBACK_CLOSED: {
 			DEBUG_LOG(">>> Client disconnected from voice websocket.");
+
 			WebsocketSet::Result result = websockets.find(wsi);
-			if (result.found()) websockets.remove(result);
+			if (result.found()) {
+				websockets.remove(result);
+			}
+
 			break;
 		}
 
 		case LWS_CALLBACK_RECEIVE: {
 			DEBUG_LOG(">>> Received message on voice websocket: %s", (char *)in);
+
 			break;
 		}
 
@@ -193,6 +216,7 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 					lws_callback_on_writable(result->wsi);
 				}
 			}
+
 			break;
 		}
 	}
