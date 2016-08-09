@@ -62,7 +62,7 @@ function decodeSilkData(decoder, ptrDataIn, dataLength) {
   Module.setValue(ptrSampleCount, maxSamples, 'i16');
 
   while (cursor < dataLength) {
-    var length = ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFFFFFF00) | (Module.getValue(ptrDataIn + cursor, 'i8') & 0xFF);
+    var length = (Module.getValue(ptrDataIn + cursor, 'i8') & 0x00FF) | ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFF00);
     cursor += 2;
     //console.log('Chunk length: ' + length);
 
@@ -80,7 +80,7 @@ function decodeSilkData(decoder, ptrDataIn, dataLength) {
       Module.setValue(ptrSampleCount, maxSamples - sampleCount, 'i16');
 
       var ret = SKP_Silk_SDK_Decode(decoder.ptrDecoderState, ptrDecoderControl, 0, ptrDataIn + cursor, length, ptrSamplesOut + (sampleCount << 1), ptrSampleCount);
-      if (ret != 0) {
+      if (ret !== 0) {
         postMessage({
           type: 'decode-error',
           error: ret,
@@ -122,17 +122,22 @@ function decodeSilkData(decoder, ptrDataIn, dataLength) {
   }
 }
 
-function processPacket(e) {
-  var dataLength = e.data.byteLength;
-  var ptrDataIn = Module._malloc(dataLength);
-  Module.HEAPU8.set(new Uint8Array(e.data), ptrDataIn);
-
+function processVoicePacket(ptrDataIn, dataLength) {
   var cursor = 0;
 
-  // This is safe since it is at the start of the allocation and thus always aligned.
-  var steamAccountFlags = Module.getValue(ptrDataIn + cursor + 4, 'i32');
-  var steamAccountId = Module.getValue(ptrDataIn + cursor, 'i32');
-  cursor += 8;
+  var steamAccountId =
+    ((Module.getValue(ptrDataIn + cursor + 0, 'i8') << (8 * 0)) & 0x000000FF) |
+    ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << (8 * 1)) & 0x0000FF00) |
+    ((Module.getValue(ptrDataIn + cursor + 2, 'i8') << (8 * 2)) & 0x00FF0000) |
+    ((Module.getValue(ptrDataIn + cursor + 3, 'i8') << (8 * 3)) & 0xFF000000);
+  cursor += 4;
+
+  var steamAccountFlags =
+    ((Module.getValue(ptrDataIn + cursor + 0, 'i8') << (8 * 0)) & 0x000000FF) |
+    ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << (8 * 1)) & 0x0000FF00) |
+    ((Module.getValue(ptrDataIn + cursor + 2, 'i8') << (8 * 2)) & 0x00FF0000) |
+    ((Module.getValue(ptrDataIn + cursor + 3, 'i8') << (8 * 3)) & 0xFF000000);
+  cursor += 4;
 
   var decoder = getOrCreateDecoderForSteamId(steamAccountFlags, steamAccountId);
 
@@ -144,7 +149,7 @@ function processPacket(e) {
 
     switch (payloadType) {
       case 0: {
-        var numSamples = ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFFFFFF00) | (Module.getValue(ptrDataIn + cursor, 'i8') & 0xFF);
+        var numSamples = (Module.getValue(ptrDataIn + cursor, 'i8') & 0x00FF) | ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFF00);
         cursor += 2;
         break;
       }
@@ -153,7 +158,7 @@ function processPacket(e) {
       case 2:
       case 3:
       case 4: {
-        var length = ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFFFFFF00) | (Module.getValue(ptrDataIn + cursor, 'i8') & 0xFF);
+        var length = (Module.getValue(ptrDataIn + cursor, 'i8') & 0x00FF) | ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFF00);
         cursor += 2;
 
         if (payloadType === 4) {
@@ -175,7 +180,7 @@ function processPacket(e) {
       }
 
       case 11: {
-        var sampleRate = ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFFFFFF00) | (Module.getValue(ptrDataIn + cursor, 'i8') & 0xFF);
+        var sampleRate = (Module.getValue(ptrDataIn + cursor, 'i8') & 0x00FF) | ((Module.getValue(ptrDataIn + cursor + 1, 'i8') << 8) & 0xFF00);
         cursor += 2;
         Module.setValue(ptrDecoderControl, sampleRate, 'i32');
         break;
@@ -188,6 +193,37 @@ function processPacket(e) {
         });
         break;
       }
+    }
+  }
+}
+
+var TelephoneEventType = {
+  VoiceData: 0,
+  StateUpdate: 1,
+  ChatMessage: 2,
+};
+
+function processPacket(e) {
+  var dataLength = e.data.byteLength;
+  var ptrDataIn = Module._malloc(dataLength);
+  Module.HEAPU8.set(new Uint8Array(e.data), ptrDataIn);
+
+  var cursor = 0;
+
+  var packetType = Module.getValue(ptrDataIn + cursor, 'i8');
+  cursor += 1;
+
+  switch (packetType) {
+    case TelephoneEventType.VoiceData: {
+      processVoicePacket(ptrDataIn + cursor, dataLength - cursor);
+      break;
+    }
+    default: {
+      postMessage({
+        type: 'unknown-packet',
+        packet: packetType,
+      });
+      break;
     }
   }
 

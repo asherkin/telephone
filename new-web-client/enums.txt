@@ -1,7 +1,7 @@
 enum TelephoneEventType {
-  TET_StateUpdate = 0,
+  TET_VoiceData = 0,
+  TET_StateUpdate,
   TET_ChatMessage,
-  TET_VoiceData,
 
   TET_GameSpecific = 100,
 

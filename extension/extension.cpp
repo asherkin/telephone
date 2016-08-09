@@ -27,6 +27,8 @@ lws_context *websocket;
 #define DEBUG_LOG(...)
 #endif
 
+static const unsigned char TET_VoiceData = 0;
+
 enum netadrtype_t
 {
 	NA_NULL = 0,
@@ -45,8 +47,9 @@ struct netadr_t
 struct VoiceBuffer: ke::Refcounted<VoiceBuffer>
 {
 	VoiceBuffer(void *data, size_t bytes): length(bytes) {
-		this->data = new unsigned char[LWS_SEND_BUFFER_PRE_PADDING + bytes + LWS_SEND_BUFFER_POST_PADDING];
-		memcpy(&this->data[LWS_SEND_BUFFER_PRE_PADDING], data, bytes);
+		this->data = new unsigned char[LWS_SEND_BUFFER_PRE_PADDING + 1 + bytes + LWS_SEND_BUFFER_POST_PADDING];
+		this->data[LWS_SEND_BUFFER_PRE_PADDING] = TET_VoiceData;
+		memcpy(&this->data[LWS_SEND_BUFFER_PRE_PADDING + 1], data, bytes);
 	}
 
 	~VoiceBuffer() {
