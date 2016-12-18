@@ -1,4 +1,3 @@
-silk/src/* linguist-vendored
-silk/include/* linguist-vendored
+decoders/* linguist-vendored
 libwebsockets/* linguist-vendored
 *.h linguist-language=C++
