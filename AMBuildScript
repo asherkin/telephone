@@ -27,7 +27,6 @@ class TelephoneConfig(object):
     self.sdks = {}
     self.binaries = []
     self.sm_root = None
-    self.silk_sdk = None
     self.extensions = []
 
   @property
