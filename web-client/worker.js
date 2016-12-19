@@ -197,10 +197,14 @@ function processVoicePacket(ptrDataIn, dataLength) {
   }
 }
 
-var TelephoneEventType = {
+var TelephoneEvent = {
   VoiceData: 0,
-  StateUpdate: 1,
-  ChatMessage: 2,
+};
+
+var VoiceDataType = {
+  Steam: 0,
+  Speex: 1,
+  Celt:  2,
 };
 
 function processPacket(e) {
@@ -210,11 +214,14 @@ function processPacket(e) {
 
   var cursor = 0;
 
-  var packetType = Module.getValue(ptrDataIn + cursor, 'i8');
+  var telephoneEvent = Module.getValue(ptrDataIn + cursor, 'i8');
   cursor += 1;
 
-  switch (packetType) {
-    case TelephoneEventType.VoiceData: {
+  var voiceDataType = Module.getValue(ptrDataIn + cursor, 'i8');
+  cursor += 1;
+
+  switch (telephoneEvent) {
+    case TelephoneEvent.VoiceData: {
       processVoicePacket(ptrDataIn + cursor, dataLength - cursor);
       break;
     }
