@@ -150,17 +150,16 @@ DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 	// This is useful for dumping voice data for debugging.
 	static int packet = 0;
 	char filename[64];
-	sprintf(filename, "voice_%02d.dat", packet++);
+	sprintf(filename, "voice_%p_%02d.bin", client, packet++);
 	FILE *file = fopen(filename, "wb");
 	fwrite(data, bytes, 1, file);
 	fclose(file);
-#endif
 
-#if 0
 	// This is useful for getting the correct m_SteamID offset.
-	FILE *file2 = fopen("voice_client.bin", "wb");
-	fwrite(client, 128, 1, file2);
-	fclose(file2);
+	sprintf(filename, "voice_%p_client.bin", client);
+	file = fopen(filename, "wb");
+	fwrite(client, 128, 1, file);
+	fclose(file);
 #endif
 
 #if 1
