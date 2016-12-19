@@ -12,14 +12,31 @@
 
 #include <string.h>
 
+enum TelephoneEvent: unsigned char
+{
+	TelephoneEvent_VoiceData,
+}
+
+enum VoiceDataType: unsigned char
+{
+	VoiceDataType_Steam,
+	VoiceDataType_Speex,
+	VoiceDataType_Celt,
+}
+
 Telephone g_Telephone;
 SMEXT_LINK(&g_Telephone);
 
-IGameConfig *gameConfig;
+IGameConfig *gameConfig = nullptr;
+unsigned int steamIdOffset = 0;
 
-CDetour *detourBroadcastVoiceData;
+CDetour *detourBroadcastVoiceData = nullptr;
 
-lws_context *websocket;
+lws_context *websocket = nullptr;
+
+char configNetworkInterface[64] = "";
+short configNetworkPort = 9000;
+VoiceDataType configVoiceDataType = VoiceDataType_Steam;
 
 #ifndef NDEBUG
 #define DEBUG_LOG rootconsole->ConsolePrint
@@ -27,29 +44,29 @@ lws_context *websocket;
 #define DEBUG_LOG(...)
 #endif
 
-static const unsigned char TET_VoiceData = 0;
-
-enum netadrtype_t
-{
-	NA_NULL = 0,
-	NA_LOOPBACK,
-	NA_BROADCAST,
-	NA_IP,
-};
-
-struct netadr_t
-{
-	netadrtype_t type;
-	unsigned char ip[4];
-	unsigned short port;
-};
-
 struct VoiceBuffer: ke::Refcounted<VoiceBuffer>
 {
-	VoiceBuffer(void *data, size_t bytes): length(bytes) {
-		this->data = new unsigned char[LWS_SEND_BUFFER_PRE_PADDING + 1 + bytes + LWS_SEND_BUFFER_POST_PADDING];
-		this->data[LWS_SEND_BUFFER_PRE_PADDING] = TET_VoiceData;
-		memcpy(&this->data[LWS_SEND_BUFFER_PRE_PADDING + 1], data, bytes);
+	VoiceBuffer(void *data, size_t bytes, VoiceDataType voiceDataType, uint64_t steamId) {
+		this->length = sizeof(TelephoneEvent) + sizeof(voiceDataType) + bytes;
+		if (voiceDataType != VoiceDataType_Steam) {
+			this->length += sizeof(steamId);
+		}
+
+		this->data = new unsigned char[LWS_SEND_BUFFER_PRE_PADDING + this->length + LWS_SEND_BUFFER_POST_PADDING];
+		size_t cursor = LWS_SEND_BUFFER_PRE_PADDING;
+
+		this->data[cursor] = TelephoneEvent_VoiceData;
+		cursor += sizeof(TelephoneEvent);
+
+		this->data[cursor] = voiceDataType;
+		cursor += sizeof(voiceDataType);
+
+		if (voiceDataType != VoiceDataType_Steam) {
+			this->data[cursor] = steamId;
+			cursor += sizeof(steamId);
+		}
+
+		memcpy(&this->data[cursor], data, bytes);
 	}
 
 	~VoiceBuffer() {
@@ -130,6 +147,7 @@ DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 #endif
 
 #if 0
+	// This is useful for dumping voice data for debugging.
 	static int packet = 0;
 	char filename[64];
 	sprintf(filename, "voice_%02d.dat", packet++);
@@ -138,13 +156,33 @@ DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 	fclose(file);
 #endif
 
+#if 0
+	// This is useful for getting the correct m_SteamID offset.
+	FILE *file2 = fopen("voice_client.bin", "wb");
+	fwrite(client, 128, 1, file2);
+	fclose(file2);
+#endif
+
 #if 1
+	// We only create the voice buffer if there is at least one client listening.
 	VoiceBuffer *buffer = nullptr;
 	for (WebsocketSet::iterator i = websockets.iter(); !i.empty(); i.next()) {
 		if (!buffer) {
-			buffer = new VoiceBuffer(data, bytes);
+			// Ideally, we'd read sv_use_steam_voice and sv_voicecodec here,
+			// rather than relying on the user configuring us correctly.
+
+			uint64_t steamId = 0;
+			if (configVoiceDataType != VoiceDataType_Steam) {
+				// The Steam voice data already includes the client's steamid as part of the
+				// data stream. For the native engine codecs we need to pack it in ourselves.
+				steamId = *(uint64_t *)((uintptr_t)client + steamIdOffset);
+			}
+
+			buffer = new VoiceBuffer(data, bytes, configVoiceDataType, steamId);
 		}
 
+		// Queue the voice buffer on each socket, the buffer itself is refcounted
+		// and freed automatically when it's been sent to every client.
 		Websocket &socket = *i;
 		socket.queue->append(new VoiceBufferNode(buffer));
 		lws_callback_on_writable(socket.wsi);
@@ -256,8 +294,13 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		return false;
 	}
 
-	netadr_t *net_local_adr = nullptr;
-	gameConfig->GetAddress("net_local_adr", (void **)&net_local_adr);
+	if (!gameConfig->GetOffset("IClient::m_SteamID", &steamIdOffset)) {
+		smutils->LogMessage(myself, "WARNING: IClient::m_SteamID offset missing from gamedata.");
+
+		// Jump past potential vtable pointers to real data.
+		// This only exists to have something hopefully unique as a fallback, and isn't really a steamid.
+		steamIdOffset = 12;
+	}
 
 #ifdef NDEBUG
 	lws_set_log_level(LLL_ERR | LLL_WARN, nullptr);
@@ -265,16 +308,8 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	lws_context_creation_info websocketParams = {};
 
-	if (net_local_adr) {
-		char ifaceIp[16];
-		smutils->Format(ifaceIp, sizeof(ifaceIp), "%u.%u.%u.%u", net_local_adr->ip[0], net_local_adr->ip[1], net_local_adr->ip[2], net_local_adr->ip[3]);
-		DEBUG_LOG(">>> Got host ip: %s", ifaceIp);
-		websocketParams.iface = ifaceIp;
-	} else {
-		smutils->LogError(myself, "WARNING: Failed to find net_local_adr, will bind to all interfaces.");
-	}
-
-	websocketParams.port = 9000;
+	websocketParams.iface = configNetworkInterface[0] ? configNetworkInterface : nullptr;
+	websocketParams.port = configNetworkPort;
 	websocketParams.protocols = protocols;
 	websocketParams.gid = -1;
 	websocketParams.uid = -1;
