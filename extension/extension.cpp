@@ -15,20 +15,20 @@
 enum TelephoneEvent: unsigned char
 {
 	TelephoneEvent_VoiceData,
-}
+};
 
 enum VoiceDataType: unsigned char
 {
 	VoiceDataType_Steam,
 	VoiceDataType_Speex,
 	VoiceDataType_Celt,
-}
+};
 
 Telephone g_Telephone;
 SMEXT_LINK(&g_Telephone);
 
 IGameConfig *gameConfig = nullptr;
-unsigned int steamIdOffset = 0;
+int steamIdOffset = 0;
 
 CDetour *detourBroadcastVoiceData = nullptr;
 
@@ -62,7 +62,7 @@ struct VoiceBuffer: ke::Refcounted<VoiceBuffer>
 		cursor += sizeof(voiceDataType);
 
 		if (voiceDataType != VoiceDataType_Steam) {
-			this->data[cursor] = steamId;
+			memcpy(&this->data[cursor], &steamId, sizeof(steamId));
 			cursor += sizeof(steamId);
 		}
 
