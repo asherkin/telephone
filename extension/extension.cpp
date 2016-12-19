@@ -34,7 +34,7 @@ CDetour *detourBroadcastVoiceData = nullptr;
 
 lws_context *websocket = nullptr;
 
-char configNetworkInterface[64] = "";
+char configNetworkInterface[64] = "127.0.0.1";
 short configNetworkPort = 9000;
 VoiceDataType configVoiceDataType = VoiceDataType_Steam;
 
@@ -280,6 +280,10 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 {
 	websockets.init();
 
+	if (!this->ReloadConfigFile(error, maxlength)) {
+		return false;
+	}
+
 	if (!gameconfs->LoadGameConfigFile("telephone.games", &gameConfig, error, maxlength)) {
 		return false;
 	}
@@ -338,4 +342,54 @@ void Telephone::SDK_OnUnload()
 	detourBroadcastVoiceData->DisableDetour();
 
 	gameconfs->CloseGameConfigFile(gameConfig);
+}
+
+void Telephone::OnCoreMapStart(edict_t *pEdictList, int edictCount, int clientMax)
+{
+	char error[1024];
+	if (!this->ReloadConfigFile(error, sizeof(error))) {
+		smutils->LogError(myself, "%s", error);
+	}
+}
+
+bool Telephone::ReadINI_KeyValue(const char *key, const char *value, bool invalid_tokens, bool equal_token, bool quotes, unsigned int *curtok)
+{
+	if (strcasecmp(key, "interface") == 0) {
+		strncpy(configNetworkInterface, value, sizeof(configNetworkInterface));
+	} else if (strcasecmp(key, "port") == 0) {
+		configNetworkPort = atoi(value);
+	} else if (strcasecmp(key, "voice-codec") == 0) {
+		if (strcasecmp(value, "steam") == 0) {
+			configVoiceDataType = VoiceDataType_Steam;
+		} else if (strcasecmp(value, "speex") == 0) {
+			configVoiceDataType = VoiceDataType_Speex;
+		} else if (strcasecmp(value, "celt") == 0) {
+			configVoiceDataType = VoiceDataType_Celt;
+		} else {
+			smutils->LogError(myself, "Unknown voice-codec value in Telephone config file: %s", value);
+		}
+	} else {
+		smutils->LogError(myself, "Unknown key in Telephone config file: %s", key);
+	}
+
+	return true;
+}
+
+bool Telephone::ReloadConfigFile(char *error, size_t maxlength)
+{
+	char configFilePath[1024];
+	smutils->BuildPath(Path_SM, configFilePath, sizeof(configFilePath), "configs/telephone.ini");
+
+	unsigned int line = 0, col = 0;
+	if (!textparsers->ParseFile_INI(configFilePath, this, &line, &col)) {
+		if (line == 0) {
+			strncpy(error, "Telephone config file could not be read", maxlength);
+		} else {
+			snprintf(error, maxlength, "Failed to parse Telephone config file, error on line %d column %d", line, col);
+		}
+
+		return false;
+	}
+
+	return true;
 }

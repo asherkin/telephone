@@ -4,6 +4,7 @@ import os
 builder.SetBuildFolder('package')
 
 folder_list = [
+  'addons/sourcemod/configs',
   'addons/sourcemod/gamedata',
   'addons/sourcemod/extensions',
 ]
@@ -26,5 +27,6 @@ def CopyFiles(src, dest, files):
     source_path = os.path.join(builder.sourcePath, src, source_file)
     builder.AddCopy(source_path, dest_entry)
 
+CopyFiles('extension', 'addons/sourcemod/configs', ['telephone.ini'])
 CopyFiles('extension', 'addons/sourcemod/gamedata', ['telephone.games.txt'])
 CopyFiles('extension', 'addons/sourcemod/extensions', ['telephone.autoload'])
