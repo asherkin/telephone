@@ -53,7 +53,7 @@
       var Talker = function(props) {
         var avatar = 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg';
         if (props.talker.avatar) {
-          avatar = 'https://www.traderep.org/avatar/' + props.talker.avatar;
+          avatar = 'https://steam-api.limetech.io/user/' + props.talker.avatar + '/icon.jpg';
         }
 
         return <img style={{ marginTop: '1em', marginLeft: '0.5em', marginRight: '0.5em' }} src={avatar} />;
@@ -82,21 +82,21 @@
         onServerAddressChange: function(event) {
           this.setState({ serverAddress: event.target.value });
         },
-        connect: function(event, address) {
+        connect: function(event) {
           // Unlock the Web Audio API for iOS
           var audioSource = audioContext.createBufferSource();
           audioSource.buffer = audioContext.createBuffer(1, 1, 32000);
           audioSource.connect(audioContext.destination);
           audioSource.start();
 
-          page.setState({ connecting: true, connectionError: 'Failed to connect to server.' });
+          this.setState({ connecting: true, connectionError: 'Failed to connect to server.' });
           worker.postMessage({
             type: 'connect',
             address: this.state.serverAddress,
           });
         },
         disconnect: function(event) {
-          page.setState({ connectionError: '' });
+          this.setState({ connectionError: '' });
           worker.postMessage({
             type: 'disconnect',
           });
@@ -130,6 +130,11 @@
                 <div>
                   {this.state.connectionError ? <div>{this.state.connectionError}</div> : null}
                   <input type="text" value={this.state.serverAddress} onChange={this.onServerAddressChange} /> <button type="button" onClick={this.connect}>Connect</button>
+                  <div>
+                    <button type="button" onClick={() => { this.setState({ serverAddress: 'ws://zombie.hell.tf:9000' }, this.connect); }}>Zombie Hell</button>
+                    <button type="button" onClick={() => { this.setState({ serverAddress: 'ws://mvm2.hell.tf:9000' }, this.connect); }}>Machine Hell #2</button>
+                    <button type="button" onClick={() => { this.setState({ serverAddress: 'ws://randomizer.hell.tf:9000' }, this.connect); }}>Randomizer Hell</button>
+                  </div>
                 </div>
               </div>
             );
