@@ -85,7 +85,7 @@
         connect: function(event) {
           // Unlock the Web Audio API for iOS
           var audioSource = audioContext.createBufferSource();
-          audioSource.buffer = audioContext.createBuffer(1, 1, 32000);
+          audioSource.buffer = audioContext.createBuffer(1, 1, audioContext.sampleRate);
           audioSource.connect(audioContext.destination);
           audioSource.start();
 
@@ -93,6 +93,7 @@
           worker.postMessage({
             type: 'connect',
             address: this.state.serverAddress,
+            outputSampleRate: audioContext.sampleRate,
           });
         },
         disconnect: function(event) {
