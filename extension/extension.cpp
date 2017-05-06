@@ -46,7 +46,7 @@ VoiceDataType configVoiceDataType = VoiceDataType_Steam;
 
 struct VoiceBuffer: ke::Refcounted<VoiceBuffer>
 {
-	VoiceBuffer(void *data, size_t bytes, VoiceDataType voiceDataType, uint64_t steamId) {
+	VoiceBuffer(const void *data, size_t bytes, VoiceDataType voiceDataType, uint64_t steamId) {
 		this->length = sizeof(TelephoneEvent) + sizeof(voiceDataType) + bytes;
 		if (voiceDataType != VoiceDataType_Steam) {
 			this->length += sizeof(steamId);
@@ -136,31 +136,33 @@ typedef ke::HashSet<Websocket, WebsocketHashPolicy> WebsocketSet;
 WebsocketSet websockets;
 
 class IClient;
+class CCLCMsg_VoiceData;
 
-DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
+void BroadcastVoiceData_Callback(IClient *client, int bytes, const char *data)
 {
-	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
-
-#if 1
-	// Get it to the other in-game players first.
-	DETOUR_STATIC_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
-#endif
-
 #if 0
+	// This is useful for getting the correct m_SteamID offset.
+	char filename[64];
+	sprintf(filename, "voice_%p_client.bin", client);
+	FILE *file = fopen(filename, "wb");
+	fwrite(client, 1024, 1, file);
+	fclose(file);
+
+	if (!data || bytes <= 0) {
+		return;
+	}
+
 	// This is useful for dumping voice data for debugging.
 	static int packet = 0;
-	char filename[64];
 	sprintf(filename, "voice_%p_%02d.bin", client, packet++);
-	FILE *file = fopen(filename, "wb");
+	file = fopen(filename, "wb");
 	fwrite(data, bytes, 1, file);
 	fclose(file);
-
-	// This is useful for getting the correct m_SteamID offset.
-	sprintf(filename, "voice_%p_client.bin", client);
-	file = fopen(filename, "wb");
-	fwrite(client, 128, 1, file);
-	fclose(file);
 #endif
+
+	if (!data || bytes <= 0) {
+		return;
+	}
 
 #if 1
 	// We only create the voice buffer if there is at least one client listening.
@@ -187,6 +189,59 @@ DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 		lws_callback_on_writable(socket.wsi);
 	}
 #endif
+}
+
+#include <string>
+
+#ifdef _WIN32
+// This function has been LTCG'd to __fastcall.
+DETOUR_DECL_STATIC0(BroadcastVoiceData_CSGO, void)
+{
+	IClient *client;
+	CCLCMsg_VoiceData *message;
+	__asm
+	{
+		mov client, ecx
+		mov message, edx
+	}
+
+	// Get it to the other in-game players first.
+	// Call the original func before logging to avoid any chance of the registers being overwritten.
+	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)();
+
+	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
+
+	// TODO: Gamedata this.
+	std::string *voiceData = *(std::string **)((intptr_t)message + 8);
+	//printf(">>> Data: %p, Real Data: %p, Data Size: %u\n", voiceData, voiceData->data(), voiceData->size());
+
+	BroadcastVoiceData_Callback(client, voiceData->size(), voiceData->data());
+}
+#else
+DETOUR_DECL_STATIC2(BroadcastVoiceData_CSGO, void, IClient *, client, CCLCMsg_VoiceData *, message)
+{
+	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
+
+#if 1
+	// Get it to the other in-game players first.
+	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)(client, message);
+#endif
+
+	#error Fixme.
+	BroadcastVoiceData_Callback(client, 0, nullptr);
+}
+#endif
+
+DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
+{
+	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
+
+#if 1
+	// Get it to the other in-game players first.
+	DETOUR_STATIC_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
+#endif
+
+	BroadcastVoiceData_Callback(client, bytes, data);
 }
 
 int callback_http(lws *wsi, lws_callback_reasons reason, void *user, void *in, size_t len)
@@ -289,7 +344,13 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	CDetourManager::Init(smutils->GetScriptingEngine(), gameConfig);
 
-	detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData, "BroadcastVoiceData");
+	const char *usesCSGOBroadcastVoiceData = gameConfig->GetKeyValue("UsesCSGOBroadcastVoiceData");
+	if (usesCSGOBroadcastVoiceData && usesCSGOBroadcastVoiceData[0] == '1') {
+		detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData_CSGO, "BroadcastVoiceData");
+	} else {
+		detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData, "BroadcastVoiceData");
+	}
+
 	if (!detourBroadcastVoiceData) {
 		gameconfs->CloseGameConfigFile(gameConfig);
 
@@ -354,21 +415,29 @@ void Telephone::OnCoreMapStart(edict_t *pEdictList, int edictCount, int clientMa
 bool Telephone::ReadINI_KeyValue(const char *key, const char *value, bool invalid_tokens, bool equal_token, bool quotes, unsigned int *curtok)
 {
 	if (strcasecmp(key, "interface") == 0) {
-		strncpy(configNetworkInterface, value, sizeof(configNetworkInterface));
+		if (value) {
+			strncpy(configNetworkInterface, value, sizeof(configNetworkInterface));
+		} else {
+			configNetworkInterface[0] = '\0';
+		}
 	} else if (strcasecmp(key, "port") == 0) {
-		configNetworkPort = atoi(value);
+		if (value) {
+			configNetworkPort = atoi(value);
+		} else {
+			smutils->LogError(myself, "Invalid port value in Telephone config file");
+		}
 	} else if (strcasecmp(key, "voice-codec") == 0) {
-		if (strcasecmp(value, "steam") == 0) {
+		if (value && strcasecmp(value, "steam") == 0) {
 			configVoiceDataType = VoiceDataType_Steam;
-		} else if (strcasecmp(value, "speex") == 0) {
+		} else if (value && strcasecmp(value, "speex") == 0) {
 			configVoiceDataType = VoiceDataType_Speex;
-		} else if (strcasecmp(value, "celt") == 0) {
+		} else if (value && strcasecmp(value, "celt") == 0) {
 			configVoiceDataType = VoiceDataType_Celt;
 		} else {
-			smutils->LogError(myself, "Unknown voice-codec value in Telephone config file: %s", value);
+			smutils->LogError(myself, "Unknown voice-codec value in Telephone config file: %s", value ? value : "(null)");
 		}
 	} else {
-		smutils->LogError(myself, "Unknown key in Telephone config file: %s", key);
+		smutils->LogError(myself, "Unknown key in Telephone config file: %s", key ? key : "(null)");
 	}
 
 	return true;
