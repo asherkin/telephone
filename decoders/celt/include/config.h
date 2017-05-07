@@ -143,7 +143,7 @@
 /* #undef USE_ALLOCA */
 
 /* Use C99 variable-size arrays */
-#define VAR_ARRAYS /**/
+/* #undef VAR_ARRAYS */
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -178,4 +178,27 @@
 #if defined __SUNPRO_CC && !defined __RESTRICT
 # define _Restrict
 # define __restrict__
+#endif
+
+// Required for compat with Valve.
+#define OPUS_BUILD 1
+
+// Slim down the binary.
+#define CUSTOM_MODES_ONLY 1
+
+// alloca on win32, vararrays on everything else we support.
+#ifdef _WIN32
+#define USE_ALLOCA 1
+#else
+#define VAR_ARRAYS 1
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4018)// signed/unsigned mismatch
+#pragma warning(disable : 4244)// conversion from 'double' to 'celt_word16', possible loss of data
+#pragma warning(disable : 4267)// conversion from 'size_t' to 'int', possible loss of data
+#pragma warning(disable : 4305)// truncation from 'double' to 'const float'
+#pragma warning(disable : 4311)// pointer truncation from 'char *' to 'long'
+#pragma warning(disable : 4554)// check operator precedence for possible error; use parentheses to clarify precedence
+#pragma warning(disable : 4996)// This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 #endif
