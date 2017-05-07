@@ -205,13 +205,13 @@ DETOUR_DECL_STATIC0(BroadcastVoiceData_CSGO, void)
 		mov message, edx
 	}
 
-	// Get it to the other in-game players first.
-	// Call the original func before logging to avoid any chance of the registers being overwritten.
+	// Call the original func before logging to try and avoid the registers being overwritten.
 	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)();
 
 	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
 
 	// TODO: Gamedata this.
+	// The xuid in the message is helpfully set to the steamid on CSGO, which makes finding this offset quite easy.
 	std::string *voiceData = *(std::string **)((intptr_t)message + 8);
 	//printf(">>> Data: %p, Real Data: %p, Data Size: %u\n", voiceData, voiceData->data(), voiceData->size());
 
@@ -222,10 +222,7 @@ DETOUR_DECL_STATIC2(BroadcastVoiceData_CSGO, void, IClient *, client, CCLCMsg_Vo
 {
 	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
 
-#if 1
-	// Get it to the other in-game players first.
 	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)(client, message);
-#endif
 
 	#error Fixme.
 	BroadcastVoiceData_Callback(client, 0, nullptr);
@@ -236,10 +233,7 @@ DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, cha
 {
 	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
 
-#if 1
-	// Get it to the other in-game players first.
 	DETOUR_STATIC_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
-#endif
 
 	BroadcastVoiceData_Callback(client, bytes, data);
 }
