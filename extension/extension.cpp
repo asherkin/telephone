@@ -243,6 +243,10 @@ int callback_http(lws *wsi, lws_callback_reasons reason, void *user, void *in, s
 	switch (reason) {
 		case LWS_CALLBACK_HTTP: {
 			lws_return_http_status(wsi, HTTP_STATUS_FORBIDDEN, "Websocket connections only kthx.");
+
+			if (lws_http_transaction_completed(wsi))
+				return -1;
+
 			return 1;
 		}
 	}

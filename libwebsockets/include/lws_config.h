@@ -36,7 +36,7 @@
 #define LWS_OPENSSL_CLIENT_CERTS "../share"
 
 /* Turn off websocket extensions */
-#define LWS_NO_EXTENSIONS
+/* #undef LWS_NO_EXTENSIONS */
 
 /* Enable libev io loop */
 /* #undef LWS_USE_LIBEV */
@@ -60,7 +60,7 @@
 /* #undef LWS_NO_SERVER */
 
 /* Build without client support */
-#define LWS_NO_CLIENT
+/* #undef LWS_NO_CLIENT */
 
 /* If we should compile with MinGW support */
 /* #undef LWS_MINGW_SUPPORT */

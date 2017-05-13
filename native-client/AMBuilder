@@ -1,0 +1,28 @@
+# vim: set sts=2 ts=8 sw=2 tw=99 et ft=python:
+import os
+
+binary = Telephone.Program(builder, 'telephone-client')
+
+binary.compiler.includes += [
+  os.path.join(builder.sourcePath, 'libwebsockets', 'include'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'include'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src'),
+]
+
+binary.sources += [
+  'client.cpp',
+]
+
+if builder.target_platform == 'windows':
+  binary.compiler.postlink += [
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'websockets_static.lib'),
+  ]
+  binary.compiler.linkflags += [
+    'ws2_32.lib',
+  ]
+else:
+  binary.compiler.postlink += [
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libwebsockets.a'),
+  ]
+
+builder.Add(binary)

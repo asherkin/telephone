@@ -1,41 +1,40 @@
 #include <iostream>
+#include <memory.h>
+
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
 
 #include "../decoders/celt/src/celt.h"
+
+// ./telephone-test-client 2>/dev/null | play -t raw -r 22050 -e signed -b 16 -c 1 -
+// ./telephone-test-client 2>/dev/null | ffplay -nodisp -autoexit -f s16le -ar 22050 -ac 1 -
 
 int main(int argc, char *argv[]) {
 	constexpr int sampleRate = 22050;
 	constexpr int rawFrameSize = 512;
 	constexpr int packetSize = 64;
 
+#ifdef _WIN32
+	setmode(fileno(stdout), O_BINARY);
+#endif
+
 	int error = 0;
 	auto mode = celt_mode_create(sampleRate, rawFrameSize, &error);
 	if (error != CELT_OK) {
-		printf("celt_mode_create error: %s (%d)\n", celt_strerror(error), error);
+		fprintf(stderr, "celt_mode_create error: %s (%d)\n", celt_strerror(error), error);
 		return 1;
 	}
 
 	error = 0;
 	auto decoderState = celt_decoder_create_custom(mode, 1, &error);
 	if (error != CELT_OK) {
-		printf("celt_decoder_create_custom error: %s (%d)\n", celt_strerror(error), error);
+		fprintf(stderr, "celt_decoder_create_custom error: %s (%d)\n", celt_strerror(error), error);
 		return 1;
 	}
 
 	celt_decoder_ctl(decoderState, CELT_RESET_STATE_REQUEST, NULL);
-
-	FILE *outputFile = fopen("output.wav", "wb");
-	if (!outputFile) {
-		printf("Failed to open output file.\n");
-		return 1;
-	}
-
-	unsigned char wavHeader[] = {
-		0x52, 0x49, 0x46, 0x46, 0xFF, 0xFF, 0xFF, 0xFF, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
-		0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x22, 0x56, 0x00, 0x00, 0x44, 0xAC, 0x00, 0x00,
-		0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0xFF, 0xFF, 0xFF, 0xFF,
-	};
-
-	fwrite(wavHeader, 1, sizeof(wavHeader), outputFile);
 
 	int i = 0;
 	//const char *format = "D:/Code/telephone/test-client/data/voice_0B7A3E14_%02d.bin";
@@ -48,14 +47,14 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 
-		printf("Reading voice packet %d...\n", i);
+		fprintf(stderr, "Reading voice packet %d...\n", i);
 
 		while (true) {
 			char data[packetSize];
 			size_t length = fread(data, packetSize, 1, file);
 			if (length != 1) {
-				if (feof(file)) printf("Reached end of file.\n");
-				if (ferror(file)) printf("Error reading file.\n");
+				if (feof(file)) fprintf(stderr, "Reached end of file.\n");
+				if (ferror(file)) fprintf(stderr, "Error reading file.\n");
 				break;
 			}
 
@@ -65,30 +64,20 @@ int main(int argc, char *argv[]) {
 			celt_int16 decompressed[rawFrameSize];
 			auto numSamples = celt_decode(decoderState, (unsigned char *)data, packetSize, decompressed, rawFrameSize);
 			if (numSamples < CELT_OK) {
-				printf("celt_decod error: %s (%d)\n", celt_strerror(numSamples), numSamples);
+				fprintf(stderr, "celt_decod error: %s (%d)\n", celt_strerror(numSamples), numSamples);
 				memset(decompressed, 0, sizeof(decompressed));
-				fwrite(decompressed, sizeof(celt_int16), rawFrameSize, outputFile);
+				fwrite(decompressed, sizeof(celt_int16), rawFrameSize, stdout);
 				continue;
 			};
 
-			printf("Decoded %d samples.\n", numSamples);
+			fprintf(stderr, "Decoded %d samples.\n", numSamples);
 
-			fwrite(decompressed, sizeof(celt_int16), numSamples, outputFile);
+			fwrite(decompressed, sizeof(celt_int16), numSamples, stdout);
 		}
 
 		fclose(file);
 		i++;
 	}
-
-	size_t outputSize = ftell(outputFile);
-	fseek(outputFile, sizeof(uint32_t), SEEK_SET);
-	uint32_t outputFileSizeMinusRIFFHeader = outputSize - (sizeof(uint32_t) * 2);
-	fwrite(&outputFileSizeMinusRIFFHeader, sizeof(uint32_t), 1, outputFile);
-	fseek(outputFile, sizeof(wavHeader) - sizeof(uint32_t), SEEK_SET);
-	uint32_t outputFileSizeMinusHeader = outputSize - sizeof(wavHeader);
-	fwrite(&outputFileSizeMinusHeader, sizeof(uint32_t), 1, outputFile);
-
-	fclose(outputFile);
 
 	celt_decoder_destroy(decoderState);
 
