@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 			celt_int16 decompressed[rawFrameSize];
 			auto numSamples = celt_decode(decoderState, (unsigned char *)data, packetSize, decompressed, rawFrameSize);
 			if (numSamples < CELT_OK) {
-				fprintf(stderr, "celt_decod error: %s (%d)\n", celt_strerror(numSamples), numSamples);
+				fprintf(stderr, "celt_decode error: %s (%d)\n", celt_strerror(numSamples), numSamples);
 				memset(decompressed, 0, sizeof(decompressed));
 				fwrite(decompressed, sizeof(celt_int16), rawFrameSize, stdout);
 				continue;

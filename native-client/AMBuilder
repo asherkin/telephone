@@ -1,9 +1,42 @@
 # vim: set sts=2 ts=8 sw=2 tw=99 et ft=python:
 import os
 
+celtDecoder = Telephone.StaticLibrary(builder, 'libcelt')
+
+celtDecoder.compiler.defines += ['HAVE_CONFIG_H']
+
+celtDecoder.compiler.includes += [
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'include'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src'),
+]
+
+celtDecoder.sources += [
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'bands.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'celt.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'cwrs.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'entcode.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'entdec.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'entenc.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'header.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'kiss_fft.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'laplace.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'mathops.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'mdct.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'modes.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'pitch.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'plc.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'quant_bands.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'rate.c'),
+  os.path.join(builder.sourcePath, 'decoders', 'celt', 'src', 'vq.c'),
+]
+
+celtDecoderBinary = builder.Add(celtDecoder).binary
+
 binary = Telephone.Program(builder, 'telephone-client')
 
 binary.compiler.includes += [
+  os.path.join(Telephone.sm_root, 'public'),
+  os.path.join(Telephone.sm_root, 'public', 'amtl'),
   os.path.join(builder.sourcePath, 'libwebsockets', 'include'),
   os.path.join(builder.sourcePath, 'decoders', 'celt', 'include'),
   os.path.join(builder.sourcePath, 'decoders', 'celt', 'src'),
@@ -11,6 +44,10 @@ binary.compiler.includes += [
 
 binary.sources += [
   'client.cpp',
+]
+
+binary.compiler.postlink += [
+  celtDecoderBinary,
 ]
 
 if builder.target_platform == 'windows':

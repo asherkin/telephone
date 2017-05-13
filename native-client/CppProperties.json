@@ -1,0 +1,16 @@
+{
+  "configurations": [
+    {
+      "name": "Windows",
+      "includePath": [
+        "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.15063.0\\ucrt",
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.10.25017\\include",
+        "D:\\Code\\sourcemod-1.7\\public",
+        "D:\\Code\\sourcemod-1.7\\public\\amtl",
+        "..\\decoders\\celt\\include",
+        "..\\decoders\\celt\\src",
+        "..\\libwebsockets\\include"
+      ]
+    }
+  ]
+}

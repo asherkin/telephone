@@ -196,6 +196,12 @@ class TelephoneConfig(object):
       binary.compiler.linkflags.append('/SUBSYSTEM:WINDOWS')
     return binary
 
+  def StaticLibrary(self, context, name):
+    binary = context.compiler.StaticLibrary(name)
+    if binary.compiler.like('msvc'):
+      binary.compiler.linkflags.append('/SUBSYSTEM:WINDOWS')
+    return binary
+
   def ConfigureForExtension(self, context, compiler):
     compiler.cxxincludes += [
       os.path.join(context.currentSourcePath),
