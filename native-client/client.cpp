@@ -107,8 +107,6 @@ public:
 struct SteamIdPolicy
 {
 	static inline uint32_t hash(uint64_t s) {
-		if ((s >> 32) == 0x1100001) return (uint32_t)s;
-		fprintf(stderr, "WARNING: Hash requested for non-public SteamId???\n");
 		return ke::HashInt64(*reinterpret_cast<int64_t *>(&s));
 	}
 	static inline bool matches(uint64_t s1, uint64_t s2) {
