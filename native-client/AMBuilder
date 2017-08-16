@@ -5,6 +5,11 @@ celtDecoder = Telephone.StaticLibrary(builder, 'libcelt')
 
 celtDecoder.compiler.defines += ['HAVE_CONFIG_H']
 
+celtDecoder.compiler.cflags += [
+  '-Wno-error',
+  '-Wno-parentheses',
+]
+
 celtDecoder.compiler.includes += [
   os.path.join(builder.sourcePath, 'decoders', 'celt', 'include'),
   os.path.join(builder.sourcePath, 'decoders', 'celt', 'src'),
@@ -33,6 +38,10 @@ celtDecoder.sources += [
 celtDecoderBinary = builder.Add(celtDecoder).binary
 
 binary = Telephone.Program(builder, 'telephone-client')
+
+binary.compiler.cflags += [
+  '-Wno-error=deprecated-declarations',
+]
 
 binary.compiler.includes += [
   os.path.join(Telephone.sm_root, 'public'),

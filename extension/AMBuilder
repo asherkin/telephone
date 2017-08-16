@@ -4,6 +4,14 @@ import os
 binary = Telephone.Library(builder, 'telephone.ext')
 Telephone.ConfigureForExtension(builder, binary.compiler)
 
+# This will probably need some finesse to get working everywhere.
+# See: https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html
+# Valve currently compile using an old GCC / libstd++ that does not use the new ABI,
+# force the old one here so that our std::string is correct when reading from CCLCMsg_VoiceData.
+# Ideally I'd like to avoid linking libstdc++ and mock up a std::string interface in gamedata,
+# or at least compile using the Steam Runtime.
+binary.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
+
 binary.compiler.defines += ['SOURCEMOD_BUILD']
 
 binary.compiler.includes += [

@@ -224,8 +224,13 @@ DETOUR_DECL_STATIC2(BroadcastVoiceData_CSGO, void, IClient *, client, CCLCMsg_Vo
 
 	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)(client, message);
 
-	#error Fixme.
-	BroadcastVoiceData_Callback(client, 0, nullptr);
+	// TODO: Gamedata this.
+	// If this breaks on Linux only, check the libstdc++ ABI in use, see comment in AMBuilder.
+	// The xuid in the message is helpfully set to the steamid on CSGO, which makes finding this offset quite easy.
+	std::string *voiceData = *(std::string **)((intptr_t)message + 8);
+	printf(">>> Data: %p, Real Data: %p, Data Size: %u\n", voiceData, voiceData->data(), voiceData->size());
+
+	BroadcastVoiceData_Callback(client, voiceData->size(), voiceData->data());
 }
 #endif
 
