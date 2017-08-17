@@ -27,16 +27,16 @@ enum VoiceDataType: unsigned char
 Telephone g_Telephone;
 SMEXT_LINK(&g_Telephone);
 
-IGameConfig *gameConfig = nullptr;
-int steamIdOffset = 0;
+IGameConfig *g_gameConfig = nullptr;
+int g_steamIdOffset = 0;
 
-CDetour *detourBroadcastVoiceData = nullptr;
+CDetour *g_detourBroadcastVoiceData = nullptr;
 
-lws_context *websocket = nullptr;
+lws_context *g_websocket = nullptr;
 
-char configNetworkInterface[64] = "127.0.0.1";
-short configNetworkPort = 9000;
-VoiceDataType configVoiceDataType = VoiceDataType_Steam;
+char g_configNetworkInterface[64] = "127.0.0.1";
+short g_configNetworkPort = 9000;
+VoiceDataType g_configVoiceDataType = VoiceDataType_Steam;
 
 #ifndef NDEBUG
 #define DEBUG_LOG rootconsole->ConsolePrint
@@ -133,7 +133,7 @@ struct WebsocketHashPolicy
 };
 
 typedef ke::HashSet<Websocket, WebsocketHashPolicy> WebsocketSet;
-WebsocketSet websockets;
+WebsocketSet g_websockets;
 
 class IClient;
 class CCLCMsg_VoiceData;
@@ -167,19 +167,19 @@ void BroadcastVoiceData_Callback(IClient *client, int bytes, const char *data)
 #if 1
 	// We only create the voice buffer if there is at least one client listening.
 	VoiceBuffer *buffer = nullptr;
-	for (WebsocketSet::iterator i = websockets.iter(); !i.empty(); i.next()) {
+	for (WebsocketSet::iterator i = g_websockets.iter(); !i.empty(); i.next()) {
 		if (!buffer) {
 			// Ideally, we'd read sv_use_steam_voice and sv_voicecodec here,
 			// rather than relying on the user configuring us correctly.
 
 			uint64_t steamId = 0;
-			if (configVoiceDataType != VoiceDataType_Steam) {
+			if (g_configVoiceDataType != VoiceDataType_Steam) {
 				// The Steam voice data already includes the client's steamid as part of the
 				// data stream. For the native engine codecs we need to pack it in ourselves.
-				steamId = *(uint64_t *)((uintptr_t)client + steamIdOffset);
+				steamId = *(uint64_t *)((uintptr_t)client + g_steamIdOffset);
 			}
 
-			buffer = new VoiceBuffer(data, bytes, configVoiceDataType, steamId);
+			buffer = new VoiceBuffer(data, bytes, g_configVoiceDataType, steamId);
 		}
 
 		// Queue the voice buffer on each socket, the buffer itself is refcounted
@@ -265,9 +265,9 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 		case LWS_CALLBACK_ESTABLISHED: {
 			DEBUG_LOG(">>> Client connected to voice websocket.");
 
-			WebsocketSet::Insert insert = websockets.findForAdd(wsi);
+			WebsocketSet::Insert insert = g_websockets.findForAdd(wsi);
 			if (!insert.found()) {
-				if (!websockets.add(insert)) {
+				if (!g_websockets.add(insert)) {
 					smutils->LogError(myself, "Failed to add voice websocket to active set.");
 					break;
 				}
@@ -281,9 +281,9 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 		case LWS_CALLBACK_CLOSED: {
 			DEBUG_LOG(">>> Client disconnected from voice websocket.");
 
-			WebsocketSet::Result result = websockets.find(wsi);
+			WebsocketSet::Result result = g_websockets.find(wsi);
 			if (result.found()) {
-				websockets.remove(result);
+				g_websockets.remove(result);
 			}
 
 			break;
@@ -298,7 +298,7 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 		case LWS_CALLBACK_SERVER_WRITEABLE: {
 			DEBUG_LOG(">>> Voice websocket ready for writing.");
 
-			WebsocketSet::Result result = websockets.find(wsi);
+			WebsocketSet::Result result = g_websockets.find(wsi);
 			if (result.found() && !result->queue->empty()) {
 				do {
 					DEBUG_LOG(">>> Send voice data to websocket.");
@@ -322,7 +322,7 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 	return 0;
 }
 
-lws_protocols protocols[] = {
+lws_protocols g_protocols[] = {
 	{ "http-only", callback_http, 0, 0 },
 	{ "telephone", callback_telephone, 0, 0 },
 	{ nullptr, nullptr, 0, 0 },
@@ -330,43 +330,43 @@ lws_protocols protocols[] = {
 
 void OnGameFrame(bool simulating)
 {
-	lws_service(websocket, 0);
+	lws_service(g_websocket, 0);
 }
 
 bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 {
-	websockets.init();
+	g_websockets.init();
 
 	if (!this->ReloadConfigFile(error, maxlength)) {
 		return false;
 	}
 
-	if (!gameconfs->LoadGameConfigFile("telephone.games", &gameConfig, error, maxlength)) {
+	if (!gameconfs->LoadGameConfigFile("telephone.games", &g_gameConfig, error, maxlength)) {
 		return false;
 	}
 
-	CDetourManager::Init(smutils->GetScriptingEngine(), gameConfig);
+	CDetourManager::Init(smutils->GetScriptingEngine(), g_gameConfig);
 
-	const char *usesCSGOBroadcastVoiceData = gameConfig->GetKeyValue("UsesCSGOBroadcastVoiceData");
+	const char *usesCSGOBroadcastVoiceData = g_gameConfig->GetKeyValue("UsesCSGOBroadcastVoiceData");
 	if (usesCSGOBroadcastVoiceData && usesCSGOBroadcastVoiceData[0] == '1') {
-		detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData_CSGO, "BroadcastVoiceData");
+		g_detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData_CSGO, "BroadcastVoiceData");
 	} else {
-		detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData, "BroadcastVoiceData");
+		g_detourBroadcastVoiceData = DETOUR_CREATE_STATIC(BroadcastVoiceData, "BroadcastVoiceData");
 	}
 
-	if (!detourBroadcastVoiceData) {
-		gameconfs->CloseGameConfigFile(gameConfig);
+	if (!g_detourBroadcastVoiceData) {
+		gameconfs->CloseGameConfigFile(g_gameConfig);
 
 		strncpy(error, "Error setting up BroadcastVoiceData detour", maxlength);
 		return false;
 	}
 
-	if (!gameConfig->GetOffset("IClient::m_SteamID", &steamIdOffset)) {
+	if (!g_gameConfig->GetOffset("IClient::m_SteamID", &g_steamIdOffset)) {
 		smutils->LogMessage(myself, "WARNING: IClient::m_SteamID offset missing from gamedata.");
 
 		// Jump past potential vtable pointers to real data.
 		// This only exists to have something hopefully unique as a fallback, and isn't really a steamid.
-		steamIdOffset = 12;
+		g_steamIdOffset = 12;
 	}
 
 #ifdef NDEBUG
@@ -375,21 +375,21 @@ bool Telephone::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	lws_context_creation_info websocketParams = {};
 
-	websocketParams.iface = configNetworkInterface[0] ? configNetworkInterface : nullptr;
-	websocketParams.port = configNetworkPort;
-	websocketParams.protocols = protocols;
+	websocketParams.iface = g_configNetworkInterface[0] ? g_configNetworkInterface : nullptr;
+	websocketParams.port = g_configNetworkPort;
+	websocketParams.protocols = g_protocols;
 	websocketParams.gid = -1;
 	websocketParams.uid = -1;
 
-	websocket = lws_create_context(&websocketParams);
-	if (!websocket) {
-		gameconfs->CloseGameConfigFile(gameConfig);
+	g_websocket = lws_create_context(&websocketParams);
+	if (!g_websocket) {
+		gameconfs->CloseGameConfigFile(g_gameConfig);
 
 		strncpy(error, "Failed to start websocket server", maxlength);
 		return false;
 	}
 
-	detourBroadcastVoiceData->EnableDetour();
+	g_detourBroadcastVoiceData->EnableDetour();
 
 	smutils->AddGameFrameHook(OnGameFrame);
 
@@ -400,11 +400,11 @@ void Telephone::SDK_OnUnload()
 {
 	smutils->RemoveGameFrameHook(OnGameFrame);
 
-	lws_context_destroy(websocket);
+	lws_context_destroy(g_websocket);
 
-	detourBroadcastVoiceData->DisableDetour();
+	g_detourBroadcastVoiceData->DisableDetour();
 
-	gameconfs->CloseGameConfigFile(gameConfig);
+	gameconfs->CloseGameConfigFile(g_gameConfig);
 }
 
 void Telephone::OnCoreMapStart(edict_t *pEdictList, int edictCount, int clientMax)
@@ -419,23 +419,23 @@ bool Telephone::ReadINI_KeyValue(const char *key, const char *value, bool invali
 {
 	if (strcasecmp(key, "interface") == 0) {
 		if (value) {
-			strncpy(configNetworkInterface, value, sizeof(configNetworkInterface));
+			strncpy(g_configNetworkInterface, value, sizeof(g_configNetworkInterface));
 		} else {
-			configNetworkInterface[0] = '\0';
+			g_configNetworkInterface[0] = '\0';
 		}
 	} else if (strcasecmp(key, "port") == 0) {
 		if (value) {
-			configNetworkPort = atoi(value);
+			g_configNetworkPort = atoi(value);
 		} else {
 			smutils->LogError(myself, "Invalid port value in Telephone config file");
 		}
 	} else if (strcasecmp(key, "voice-codec") == 0) {
 		if (value && strcasecmp(value, "steam") == 0) {
-			configVoiceDataType = VoiceDataType_Steam;
+			g_configVoiceDataType = VoiceDataType_Steam;
 		} else if (value && strcasecmp(value, "speex") == 0) {
-			configVoiceDataType = VoiceDataType_Speex;
+			g_configVoiceDataType = VoiceDataType_Speex;
 		} else if (value && strcasecmp(value, "celt") == 0) {
-			configVoiceDataType = VoiceDataType_Celt;
+			g_configVoiceDataType = VoiceDataType_Celt;
 		} else {
 			smutils->LogError(myself, "Unknown voice-codec value in Telephone config file: %s", value ? value : "(null)");
 		}
