@@ -246,7 +246,15 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	lws *ws = lws_client_connect(wsContext, "192.168.0.5", 9000, 0, "/", "192.168.0.5:9000", nullptr, "telephone", -1);
+	lws_client_connect_info websocketConnectInfo = {};
+	websocketConnectInfo.context = wsContext;
+	websocketConnectInfo.address = "192.168.0.5";
+	websocketConnectInfo.port = 9000;
+	websocketConnectInfo.path = "/";
+	websocketConnectInfo.host = "192.168.0.5:9000";
+	websocketConnectInfo.protocol = "telephone";
+
+	lws *ws = lws_client_connect_via_info(&websocketConnectInfo);
 
 	while(!g_wantsExit) {
 		lws_service(wsContext, kServiceTimeout);
