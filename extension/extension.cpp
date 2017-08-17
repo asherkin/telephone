@@ -12,6 +12,9 @@
 
 #include <string.h>
 
+// CS:GO uses std::string to store the voice data.
+#include <string>
+
 enum TelephoneEvent: unsigned char
 {
 	TelephoneEvent_VoiceData,
@@ -48,6 +51,9 @@ struct VoiceBuffer: ke::Refcounted<VoiceBuffer>
 {
 	VoiceBuffer(const void *data, size_t bytes, VoiceDataType voiceDataType, uint64_t steamId) {
 		this->length = sizeof(TelephoneEvent) + sizeof(voiceDataType) + bytes;
+
+		// The Steam voice data already includes the client's steamid as part of the
+		// data stream. For the native engine codecs we need to pack it in ourselves.
 		if (voiceDataType != VoiceDataType_Steam) {
 			this->length += sizeof(steamId);
 		}
@@ -135,23 +141,13 @@ struct WebsocketHashPolicy
 typedef ke::HashSet<Websocket, WebsocketHashPolicy> WebsocketSet;
 WebsocketSet g_websockets;
 
-class IClient;
-class CCLCMsg_VoiceData;
-
-void BroadcastVoiceData_Callback(IClient *client, int bytes, const char *data)
+void BroadcastVoiceData_Callback(uint64_t steamId, int bytes, const char *data)
 {
-#if 0
-	// This is useful for getting the correct m_SteamID offset.
-	char filename[64];
-	sprintf(filename, "voice_%p_client.bin", client);
-	FILE *file = fopen(filename, "wb");
-	fwrite(client, 1024, 1, file);
-	fclose(file);
-
 	if (!data || bytes <= 0) {
 		return;
 	}
 
+#if 0
 	// This is useful for dumping voice data for debugging.
 	static int packet = 0;
 	sprintf(filename, "voice_%p_%02d.bin", client, packet++);
@@ -160,10 +156,6 @@ void BroadcastVoiceData_Callback(IClient *client, int bytes, const char *data)
 	fclose(file);
 #endif
 
-	if (!data || bytes <= 0) {
-		return;
-	}
-
 #if 1
 	// We only create the voice buffer if there is at least one client listening.
 	VoiceBuffer *buffer = nullptr;
@@ -171,14 +163,6 @@ void BroadcastVoiceData_Callback(IClient *client, int bytes, const char *data)
 		if (!buffer) {
 			// Ideally, we'd read sv_use_steam_voice and sv_voicecodec here,
 			// rather than relying on the user configuring us correctly.
-
-			uint64_t steamId = 0;
-			if (g_configVoiceDataType != VoiceDataType_Steam) {
-				// The Steam voice data already includes the client's steamid as part of the
-				// data stream. For the native engine codecs we need to pack it in ourselves.
-				steamId = *(uint64_t *)((uintptr_t)client + g_steamIdOffset);
-			}
-
 			buffer = new VoiceBuffer(data, bytes, g_configVoiceDataType, steamId);
 		}
 
@@ -191,7 +175,29 @@ void BroadcastVoiceData_Callback(IClient *client, int bytes, const char *data)
 #endif
 }
 
-#include <string>
+class IClient;
+class CCLCMsg_VoiceData;
+
+DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
+{
+	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
+
+	DETOUR_STATIC_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
+
+#if 0
+	// This is useful for getting the correct m_SteamID offset.
+	char filename[64];
+	sprintf(filename, "voice_%p_client.bin", client);
+	FILE *file = fopen(filename, "wb");
+	fwrite(client, 1024, 1, file);
+	fclose(file);
+#endif
+
+	// xuid isn't populated pre-CS:GO, so get the SteamID from the client instead.
+	uint64_t steamId = *(uint64_t *)((uintptr_t)client + g_steamIdOffset);
+
+	BroadcastVoiceData_Callback(steamId, bytes, data);
+}
 
 #ifdef _WIN32
 // This function has been LTCG'd to __fastcall.
@@ -207,40 +213,23 @@ DETOUR_DECL_STATIC0(BroadcastVoiceData_CSGO, void)
 
 	// Call the original func before logging to try and avoid the registers being overwritten.
 	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)();
-
-	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
-
-	// TODO: Gamedata this.
-	// The xuid in the message is helpfully set to the steamid on CSGO, which makes finding this offset quite easy.
-	std::string *voiceData = *(std::string **)((intptr_t)message + 8);
-	//printf(">>> Data: %p, Real Data: %p, Data Size: %u\n", voiceData, voiceData->data(), voiceData->size());
-
-	BroadcastVoiceData_Callback(client, voiceData->size(), voiceData->data());
-}
 #else
 DETOUR_DECL_STATIC2(BroadcastVoiceData_CSGO, void, IClient *, client, CCLCMsg_VoiceData *, message)
 {
-	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
-
 	DETOUR_STATIC_CALL(BroadcastVoiceData_CSGO)(client, message);
-
-	// TODO: Gamedata this.
-	// If this breaks on Linux only, check the libstdc++ ABI in use, see comment in AMBuilder.
-	// The xuid in the message is helpfully set to the steamid on CSGO, which makes finding this offset quite easy.
-	std::string *voiceData = *(std::string **)((intptr_t)message + 8);
-	printf(">>> Data: %p, Real Data: %p, Data Size: %u\n", voiceData, voiceData->data(), voiceData->size());
-
-	BroadcastVoiceData_Callback(client, voiceData->size(), voiceData->data());
-}
 #endif
 
-DETOUR_DECL_STATIC4(BroadcastVoiceData, void, IClient *, client, int, bytes, char *, data, long long, xuid)
-{
-	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %d, %p, %lld)", client, bytes, data, xuid);
+	DEBUG_LOG(">>> SV_BroadcastVoiceData(%p, %p)", client, message);
 
-	DETOUR_STATIC_CALL(BroadcastVoiceData)(client, bytes, data, xuid);
+	// TODO: Gamedata this.
 
-	BroadcastVoiceData_Callback(client, bytes, data);
+	// If this breaks on Linux only, check the libstdc++ ABI in use, see comment in AMBuilder.
+	std::string *voiceData = *(std::string **)((intptr_t)message + 8);
+
+	// The xuid in the message is helpfully set to the steamid on CS:GO, which makes finding these offsets quite easy.
+	uint64_t steamId = *(uint64_t *)((uintptr_t)message + 12);
+
+	BroadcastVoiceData_Callback(steamId, voiceData->size(), voiceData->data());
 }
 
 int callback_http(lws *wsi, lws_callback_reasons reason, void *user, void *in, size_t len)
