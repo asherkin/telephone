@@ -36,9 +36,9 @@ enum VoiceDataType: unsigned char
 
 constexpr int kServiceTimeout = 250;
 
-constexpr int kCeltSampleRate = 22050;
-constexpr int kCeltRawFrameSize = 512;
-constexpr int kCeltPacketSize = 64;
+constexpr unsigned kCeltSampleRate = 22050;
+constexpr unsigned kCeltRawFrameSize = 512;
+constexpr unsigned kCeltPacketSize = 64;
 
 bool g_wantsExit = false;
 
