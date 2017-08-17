@@ -143,6 +143,8 @@ WebsocketSet g_websockets;
 
 void BroadcastVoiceData_Callback(uint64_t steamId, int bytes, const char *data)
 {
+	DEBUG_LOG(">>> Got %d bytes of voice data from %lld", bytes, steamId);
+
 	if (!data || bytes <= 0) {
 		return;
 	}
