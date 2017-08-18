@@ -83,7 +83,7 @@
 /* #undef LWS_MINGW_SUPPORT */
 
 /* Use the BSD getifaddrs that comes with libwebsocket, for uclibc support */
-/* #undef LWS_BUILTIN_GETIFADDRS */
+#define LWS_BUILTIN_GETIFADDRS
 
 /* use SHA1() not internal libwebsockets_SHA1 */
 /* #undef LWS_SHA1_USE_OPENSSL_NAME */
