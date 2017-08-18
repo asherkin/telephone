@@ -9,7 +9,8 @@ Telephone.ConfigureForExtension(builder, binary.compiler)
 # force the old one here so that our std::string is correct when reading from CCLCMsg_VoiceData.
 # (Note: I build release builds with gcc-4.6 so this isn't strictly required,
 #  but be future proof because this was a nightmare to figure out.)
-binary.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
+if binary.compiler.like('gcc'):
+  binary.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
 
 binary.compiler.defines += ['SOURCEMOD_BUILD']
 
@@ -30,6 +31,7 @@ if builder.target_platform == 'windows':
   ]
   binary.compiler.linkflags += [
     'ws2_32.lib',
+    'Iphlpapi.lib',
   ]
 else:
   binary.compiler.postlink += [
