@@ -1,3 +1,4 @@
 /build/
 /test_data/
-/.vs
+.vs/
+node_modules/
