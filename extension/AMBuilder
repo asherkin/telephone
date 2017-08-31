@@ -28,6 +28,9 @@ binary.sources += [
 if builder.target_platform == 'windows':
   binary.compiler.postlink += [
     os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'websockets_static.lib'),
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'mbedtls.lib'),
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'mbedx509.lib'),
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'mbedcrypto.lib'),
   ]
   binary.compiler.linkflags += [
     'ws2_32.lib',
