@@ -22,16 +22,19 @@
 #define DEBUG_LOG(...) do {} while(0)
 #endif
 
+constexpr unsigned char kTelephoneProtocolVersion = 1;
+
 enum TelephoneEvent: unsigned char
 {
-	TelephoneEvent_VoiceData,
+	TelephoneEvent_VoiceData = 0,
 };
 
 enum VoiceDataType: unsigned char
 {
-	VoiceDataType_Steam,
-	VoiceDataType_Speex,
-	VoiceDataType_Celt,
+	VoiceDataType_Steam = 0,
+	VoiceDataType_Miles = 1,
+	VoiceDataType_Speex = 2,
+	VoiceDataType_Celt  = 3,
 };
 
 constexpr int kServiceTimeout = 250;
@@ -99,7 +102,8 @@ public:
 		outLen = decodeRet;
 		return true;
 	}
-	
+
+private:	
 	CELTMode *mode_;
 	CELTDecoder *decoder_;
 };
@@ -157,33 +161,43 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 			DEBUG_LOG(">>> Data received on voice websocket. (%u bytes)\n", len);
 
 			if (len < 1) {
-				fprintf(stderr, "Not enough data (event)\n");
+				fprintf(stderr, "Not enough data (version)\n");
 				break;
 			}
 
 			uint8_t *data = (uint8_t *)in;
 
-			if (data[0] != TelephoneEvent_VoiceData) {
-				DEBUG_LOG("Unknown event type %u\n", data[0]);
+			if (data[0] != kTelephoneProtocolVersion) {
+				DEBUG_LOG("Unknown protocol version %u\n", data[0]);
 				break;
 			}
 
-			if (len < 10) {
+			if (len < 2) {
+				fprintf(stderr, "Not enough data (event)\n");
+				break;
+			}
+
+			if (data[1] != TelephoneEvent_VoiceData) {
+				DEBUG_LOG("Unknown event type %u\n", data[1]);
+				break;
+			}
+
+			if (len < 11) {
 				fprintf(stderr, "Not enough data (voice)\n");
 				break;
 			}
 
-			if (data[1] != VoiceDataType_Celt) {
-				fprintf(stderr, "Unsupported voice data type %u\n", data[1]);
+			if (data[2] != VoiceDataType_Celt) {
+				fprintf(stderr, "Unsupported voice data type %u\n", data[2]);
 				break;
 			}
 
 			uint64_t steamId;
-			memcpy(&steamId, &data[2], sizeof(steamId));
+			memcpy(&steamId, &data[3], sizeof(steamId));
 			DEBUG_LOG("Got voice data from %llu\n", steamId);
 			
-			uint8_t *voiceData = &data[10];
-			size_t voiceDataLen = len - 10;
+			uint8_t *voiceData = &data[11];
+			size_t voiceDataLen = len - 11;
 
 			if ((voiceDataLen % kCeltPacketSize) != 0) {
 				fprintf(stderr, "CELT payload not a multiple of packet size\n");
@@ -214,7 +228,7 @@ int callback_telephone(lws *wsi, lws_callback_reasons reason, void *user, void *
 	return 0;
 }
 
-lws_protocols protocols[] = {
+lws_protocols g_protocols[] = {
 	{ "telephone", callback_telephone, 0, 0 },
 	{ nullptr, nullptr, 0, 0 },
 };
@@ -237,7 +251,7 @@ int main(int argc, char *argv[]) {
 	websocketParams.options = LWS_SERVER_OPTION_SKIP_SERVER_CANONICAL_NAME | LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_SERVER_OPTION_JUST_USE_RAW_ORIGIN;
 	websocketParams.iface = nullptr;
 	websocketParams.port = CONTEXT_PORT_NO_LISTEN;
-	websocketParams.protocols = protocols;
+	websocketParams.protocols = g_protocols;
 	websocketParams.gid = -1;
 	websocketParams.uid = -1;
 
