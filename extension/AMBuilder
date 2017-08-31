@@ -36,6 +36,9 @@ if builder.target_platform == 'windows':
 else:
   binary.compiler.postlink += [
     os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libwebsockets.a'),
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libmbedtls.a'),
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libmbedx509.a'),
+    os.path.join(builder.sourcePath, 'libwebsockets', 'lib', 'libmbedcrypto.a'),
   ]
 
 Telephone.extensions += [builder.Add(binary)]

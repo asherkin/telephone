@@ -204,7 +204,7 @@ typedef unsigned long long lws_intptr_t;
 #endif /* not USE_OLD_CYASSL */
 #else
 #include <openssl/ssl.h>
-#if !defined(LWS_WITH_ESP32)
+#if !defined(LWS_USE_MBEDTLS)
 #include <openssl/err.h>
 #endif
 #endif /* not USE_WOLFSSL */
@@ -636,6 +636,7 @@ struct lws_esp32_image {
 };
 
 extern struct lws_esp32 lws_esp32;
+struct lws_vhost;
 
 extern esp_err_t
 lws_esp32_event_passthru(void *ctx, system_event_t *event);
@@ -649,7 +650,7 @@ struct lws_context_creation_info;
 extern void
 lws_esp32_set_creation_defaults(struct lws_context_creation_info *info);
 extern struct lws_context *
-lws_esp32_init(struct lws_context_creation_info *);
+lws_esp32_init(struct lws_context_creation_info *, struct lws_vhost **pvh);
 extern int
 lws_esp32_wlan_nvs_get(int retry);
 extern esp_err_t
@@ -1325,6 +1326,11 @@ enum lws_callback_reasons {
 typedef int
 lws_callback_function(struct lws *wsi, enum lws_callback_reasons reason,
 		    void *user, void *in, size_t len);
+
+#define LWS_CB_REASON_AUX_BF__CGI		1
+#define LWS_CB_REASON_AUX_BF__PROXY		2
+#define LWS_CB_REASON_AUX_BF__CGI_CHUNK_END	4
+#define LWS_CB_REASON_AUX_BF__CGI_HEADERS	8
 ///@}
 
 /*! \defgroup extensions
@@ -1929,8 +1935,14 @@ struct lws_context_creation_info {
 	unsigned int options;
 	/**< VHOST + CONTEXT: 0, or LWS_SERVER_OPTION_... bitfields */
 	void *user;
-	/**< CONTEXT: optional user pointer that can be recovered via the context
-	 *		pointer using lws_context_user */
+	/**< VHOST + CONTEXT: optional user pointer that will be associated
+	 * with the context when creating the context (and can be retrieved by
+	 * lws_context_user(context), or with the vhost when creating the vhost
+	 * (and can be retrieved by lws_vhost_user(vhost)).  You will need to
+	 * use LWS_SERVER_OPTION_EXPLICIT_VHOSTS and create the vhost separately
+	 * if you care about giving the context and vhost different user pointer
+	 * values.
+	 */
 	int ka_time;
 	/**< CONTEXT: 0 for no TCP keepalive, otherwise apply this keepalive
 	 * timeout to all libwebsocket sockets, client or server */
@@ -2342,6 +2354,17 @@ lws_json_dump_vhost(const struct lws_vhost *vh, char *buf, int len);
 LWS_VISIBLE LWS_EXTERN int
 lws_json_dump_context(const struct lws_context *context, char *buf, int len,
 		      int hide_vhosts);
+
+/**
+ * lws_vhost_user() - get the user data associated with the vhost
+ * \param vhost: Websocket vhost
+ *
+ * This returns the optional user pointer that can be attached to
+ * a vhost when it was created.  Lws never dereferences this pointer, it only
+ * sets it when the vhost is created, and returns it using this api.
+ */
+LWS_VISIBLE LWS_EXTERN void *
+lws_vhost_user(struct lws_vhost *vhost);
 
 /**
  * lws_context_user() - get the user data associated with the context
@@ -3974,10 +3997,11 @@ lws_callback_all_protocol(struct lws_context *context,
 
 /**
  * lws_callback_all_protocol_vhost() - Callback all connections using
- *				the given protocol with the given reason
+ *			the given protocol with the given reason.  This is
+ *			deprecated since v2.4: use lws_callback_all_protocol_vhost_args
  *
  * \param vh:		Vhost whose connections will get callbacks
- * \param protocol:	Which protocol to match
+ * \param protocol:	Which protocol to match.  NULL means all.
  * \param reason:	Callback reason index
  *
  * - Which:  connections using this protocol on GIVEN VHOST ONLY
@@ -3986,7 +4010,27 @@ lws_callback_all_protocol(struct lws_context *context,
  */
 LWS_VISIBLE LWS_EXTERN int
 lws_callback_all_protocol_vhost(struct lws_vhost *vh,
-			  const struct lws_protocols *protocol, int reason);
+			  const struct lws_protocols *protocol, int reason)
+LWS_WARN_DEPRECATED;
+
+/**
+ * lws_callback_all_protocol_vhost_args() - Callback all connections using
+ *			the given protocol with the given reason and args
+ *
+ * \param vh:		Vhost whose connections will get callbacks
+ * \param protocol:	Which protocol to match.  NULL means all.
+ * \param reason:	Callback reason index
+ * \param argp:		Callback "in" parameter
+ * \param len:		Callback "len" parameter
+ *
+ * - Which:  connections using this protocol on GIVEN VHOST ONLY
+ * - When:   now
+ * - What:   reason
+ */
+LWS_VISIBLE int
+lws_callback_all_protocol_vhost_args(struct lws_vhost *vh,
+			  const struct lws_protocols *protocol, int reason,
+			  void *argp, size_t len);
 
 /**
  * lws_callback_vhost_protocols() - Callback all protocols enabled on a vhost

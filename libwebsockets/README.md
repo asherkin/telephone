@@ -5,6 +5,16 @@ CC=~/gcc-4.6.4/bin/gcc cmake -DCMAKE_C_FLAGS=-m32 -DLWS_WITH_SHARED=OFF -DLWS_WI
 Anonymize `LWS_BUILD_HASH` in `lws_config.h`.
 Build with `make -j8`
 
+Build mbedTLS with:
+```
+CC=~/gcc-4.6.4/bin/gcc cmake -DCMAKE_C_FLAGS=-m32 -DUSE_SHARED_MBEDTLS_LIBRARY=OFF ..
+```
+
+With SSL Linux:
+```
+CC=~/gcc-4.6.4/bin/gcc cmake -DCMAKE_C_FLAGS=-m32 -DLWS_WITH_SHARED=OFF -DLWS_WITH_SSL=ON -DLWS_USE_MBEDTLS=ON -DLWS_WITH_ZLIB=OFF -DLWS_WITHOUT_TESTAPPS=ON -DLWS_WITHOUT_EXTENSIONS=ON -DLWS_WITHOUT_DAEMONIZE=ON -DLWS_IPV6=ON -DLWS_WITH_PLUGINS=OFF -DLWS_WITH_RANGES=ON -DLWS_WITH_ZIP_FOPS=OFF -DLWS_MAX_SMP=1 -DLWS_MBEDTLS_INCLUDE_DIRS=../../mbedtls-2.6.0/include/ -DMBEDCRYPTO_LIBRARY=../../mbedtls-2.6.0/build/library/libmbedcrypto.a -DMBEDTLS_LIBRARY=../../mbedtls-2.6.0/build/library/libmbedtls.a -DMBEDX509_LIBRARY=../../mbedtls-2.6.0/build/library/libmbedx509.a ..
+```
+
 Windows:
 ```
 cmake -DLWS_WITH_SHARED=OFF -DLWS_WITH_SSL=OFF -DLWS_WITH_ZLIB=OFF -DLWS_WITHOUT_TESTAPPS=ON -DLWS_WITHOUT_EXTENSIONS=ON -DLWS_WITHOUT_DAEMONIZE=ON -DLWS_IPV6=ON -DLWS_WITH_PLUGINS=OFF -DLWS_WITH_RANGES=ON -DLWS_WITH_ZIP_FOPS=OFF -DLWS_MAX_SMP=1 ..
@@ -13,3 +23,16 @@ Replace all instances of `/MD` with `/MT` in CMakeCache.txt, run just `cmake ..`
 Anonymize `LWS_BUILD_HASH` in `lws_config.h`.
 Then build solution.
 
+Windows SSL:
+```
+cmake -DLWS_WITH_SHARED=OFF -DLWS_WITH_SSL=ON -DLWS_USE_MBEDTLS=ON -DLWS_WITH_ZLIB=OFF -DLWS_WITHOUT_TESTAPPS=ON -DLWS_WITHOUT_EXTENSIONS=ON -DLWS_WITHOUT_DAEMONIZE=ON -DLWS_IPV6=ON -DLWS_WITH_PLUGINS=OFF -DLWS_WITH_RANGES=ON -DLWS_WITH_ZIP_FOPS=OFF -DLWS_MAX_SMP=1 -DLWS_MBEDTLS_INCLUDE_DIRS="..\\..\\mbedtls-2.6.0\\include\\" -DLWS_MBEDTLS_LIBRARIES="..\\..\\mbedtls-2.6.0\\build\\library\\RelWithDebInfo\\" ..
+```
+
+Had to add
+```
+#ifdef X509_NAME
+#undef X509_NAME
+#endif
+```
+to `ssl_x509.h` for wrapper to compile.
+And manually fixup libmbedtls include path.

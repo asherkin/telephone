@@ -17,7 +17,7 @@
 /* #undef USE_OLD_CYASSL */
 /* #undef LWS_USE_BORINGSSL */
 
-/* #undef LWS_USE_MBEDTLS */
+#define LWS_USE_MBEDTLS
 /* #undef LWS_USE_POLARSSL */
 /* #undef LWS_WITH_ESP8266 */
 /* #undef LWS_WITH_ESP32 */
@@ -35,10 +35,10 @@
 #define LWS_LIBRARY_VERSION_NUMBER (LWS_LIBRARY_VERSION_MAJOR*1000000)+(LWS_LIBRARY_VERSION_MINOR*1000)+LWS_LIBRARY_VERSION_PATCH
 
 /* The current git commit hash that we're building from */
-#define LWS_BUILD_HASH "v2.0.0-493-gc5d29ba"
+#define LWS_BUILD_HASH "v2.0.0-519-gd6e8459"
 
 /* Build with OpenSSL support */
-/* #undef LWS_OPENSSL_SUPPORT */
+#define LWS_OPENSSL_SUPPORT
 
 /* The client should load and trust CA root certs it finds in the OS */
 #define LWS_SSL_CLIENT_USE_OS_CA_CERTS
@@ -145,7 +145,7 @@
 
 /* OpenSSL various APIs */
 
-/* #undef LWS_HAVE_TLS_CLIENT_METHOD */
+#define LWS_HAVE_TLS_CLIENT_METHOD
 /* #undef LWS_HAVE_TLSV1_2_CLIENT_METHOD */
 /* #undef LWS_HAVE_SSL_SET_INFO_CALLBACK */
 

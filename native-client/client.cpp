@@ -234,6 +234,7 @@ int main(int argc, char *argv[]) {
 
 	lws_context_creation_info websocketParams = {};
 
+	websocketParams.options = LWS_SERVER_OPTION_SKIP_SERVER_CANONICAL_NAME | LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_SERVER_OPTION_JUST_USE_RAW_ORIGIN;
 	websocketParams.iface = nullptr;
 	websocketParams.port = CONTEXT_PORT_NO_LISTEN;
 	websocketParams.protocols = protocols;
